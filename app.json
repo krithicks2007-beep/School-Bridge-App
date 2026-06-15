@@ -1,0 +1,23 @@
+{
+  "expo": {
+    "name": "School-Bridge App",
+    "slug": "school-parent-app",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "android": {
+      "package": "com.schoolbridgeapp.mobile"
+    },
+    "ios": {
+      "bundleIdentifier": "com.schoolbridgeapp.mobile"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "ee7fdf83-a2e9-4018-89d2-b59fb54fcb98"
+      }
+    }
+  }
+}

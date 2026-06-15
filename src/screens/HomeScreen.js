@@ -1,0 +1,180 @@
+import React, { useState } from 'react';
+import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+
+export default function HomeScreen({ onNavigate }) {
+  const [logoError, setLogoError] = useState(false);
+  const insets = useSafeAreaInsets();
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    if (hour < 12) return 'Good Morning,';
+    if (hour < 17) return 'Good Afternoon,';
+    return 'Good Evening,';
+  };
+
+  const renderCard = ({ id, title, subtitle, boldSubtitle, iconLib: IconLib, icon, iconColor, gradient, badgeCount }) => (
+    <TouchableOpacity
+      key={id}
+      className="mb-4 h-[162px] w-[48%] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
+      activeOpacity={0.85}
+      onPress={() => onNavigate && onNavigate(id)}
+    >
+      <LinearGradient colors={gradient} className="flex-1 p-3.5" start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+        {badgeCount && (
+          <View className="absolute right-2.5 top-2.5 z-10 h-[22px] w-[22px] items-center justify-center rounded-full bg-rose-600 shadow-md shadow-rose-600/40">
+            <Text className="text-[11px] font-extrabold text-white">{badgeCount}</Text>
+          </View>
+        )}
+
+        <View className="mb-2 mt-1 h-[52px] items-start justify-start">
+          <IconLib name={icon} size={40} color={iconColor} />
+        </View>
+
+        <Text className="mb-1 text-sm font-bold text-gray-900">{title}</Text>
+
+        <View className="flex-row items-center justify-between">
+          {boldSubtitle ? (
+            <Text className="flex-1 text-xs text-[#595959]" numberOfLines={1}>
+              <Text className="font-bold text-blue-700">{boldSubtitle}</Text>
+              {' '}{subtitle}
+            </Text>
+          ) : (
+            <Text className="flex-1 text-xs text-[#595959]" numberOfLines={1}>{subtitle}</Text>
+          )}
+          <Ionicons name="chevron-forward" size={14} color="#9CA3AF" />
+        </View>
+      </LinearGradient>
+    </TouchableOpacity>
+  );
+
+  return (
+    <View className="flex-1">
+      <LinearGradient
+        colors={['#E8F0FE', '#FDF2F8', '#FFF8EC']}
+        className="absolute inset-0"
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      />
+
+      <View className="z-[100] bg-white shadow-md shadow-black/5" style={{ paddingTop: insets.top || StatusBar.currentHeight || 40 }}>
+        <View className="flex-row items-center px-5 pb-3.5 pt-2.5">
+          <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-school-gold bg-white shadow-md shadow-school-gold/25">
+            {logoError ? (
+              <Ionicons name="school" size={24} color="#D4AF37" />
+            ) : (
+              <Image
+                source={require('../../assets/pictures/school_logo.png')}
+                className="h-8 w-8"
+                resizeMode="contain"
+                onError={() => setLogoError(true)}
+              />
+            )}
+          </View>
+          <View className="flex-1 px-3">
+            <Text className="text-[15px] font-extrabold leading-[19px] text-brand-950" numberOfLines={1}>Einstein Higher Secondary School</Text>
+            <Text className="mt-0.5 text-[11px] font-medium text-gray-500">School Bridge App</Text>
+          </View>
+          <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
+            <Ionicons name="notifications-outline" size={22} color="#1E1B4B" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <ScrollView
+        className="flex-1"
+        contentContainerClassName="items-center px-5 pt-5"
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="mb-6 w-full overflow-hidden rounded-[24px] shadow-xl shadow-blue-600/25">
+          <LinearGradient
+            colors={['#3B82F6', '#1D4ED8']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            className="flex-row items-center justify-between p-6"
+          >
+            <View className="flex-1 pr-3">
+              <Text className="mb-0.5 text-sm font-medium text-white/85">{getGreeting()}</Text>
+              <Text className="mb-2.5 text-[26px] font-black leading-8 text-white" numberOfLines={2}>Mr. Dominic.</Text>
+              <Text className="text-[13px] leading-[19px] text-white/85">
+                Stay connected with your child's learning and school updates.
+              </Text>
+            </View>
+
+            <Image
+              source={require('../../assets/pictures/pic.jpg')}
+              className="h-14 w-14 shrink-0 rounded-full border-2 border-white shadow-md"
+              resizeMode="cover"
+            />
+          </LinearGradient>
+        </View>
+
+        <View className="w-full flex-row flex-wrap justify-between">
+          {renderCard({
+            id: 'homework',
+            title: 'Homework',
+            boldSubtitle: '2',
+            subtitle: 'pending tasks',
+            iconLib: Ionicons,
+            icon: 'book',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+            badgeCount: 2,
+          })}
+          {renderCard({
+            id: 'attendance',
+            title: 'Attendance',
+            boldSubtitle: '87.6%',
+            subtitle: 'overall',
+            iconLib: MaterialCommunityIcons,
+            icon: 'calendar-check',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+          })}
+          {renderCard({
+            id: 'test',
+            title: 'Test Mark',
+            subtitle: 'Maths updated',
+            iconLib: Ionicons,
+            icon: 'school',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+            badgeCount: 1,
+          })}
+          {renderCard({
+            id: 'transport',
+            title: 'Transport',
+            boldSubtitle: '10m',
+            subtitle: 'Bus arrives in',
+            iconLib: Ionicons,
+            icon: 'bus',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+          })}
+          {renderCard({
+            id: 'timetable',
+            title: 'Timetable',
+            subtitle: 'View daily schedule',
+            iconLib: Feather,
+            icon: 'clock',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+          })}
+          {renderCard({
+            id: 'announcement',
+            title: 'Announcement',
+            subtitle: 'Sports day details',
+            iconLib: Ionicons,
+            icon: 'megaphone',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+            badgeCount: 1,
+          })}
+        </View>
+      </ScrollView>
+    </View>
+  );
+}
