@@ -102,7 +102,7 @@ export default function HomeScreen({ onNavigate }) {
             </View>
 
             <Image
-              source={require('../../assets/pictures/student_pic.png')}
+              source={require('../../assets/pictures/pic.jpg')}
               className="h-14 w-14 shrink-0 rounded-full border-2 border-white shadow-md"
               resizeMode="cover"
             />
