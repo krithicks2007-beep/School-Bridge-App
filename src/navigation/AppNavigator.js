@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, BackHandler, Alert } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
@@ -11,11 +11,43 @@ import TestMarkScreen from '../screens/TestMarkScreen';
 import TransportScreen from '../screens/TransportScreen';
 import AnnouncementScreen from '../screens/AnnouncementScreen';
 import TimetableScreen from '../screens/TimetableScreen';
+import ChatListScreen from '../screens/ChatListScreen';
+import ChatScreen from '../screens/ChatScreen';
 
 export default function AppNavigator() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentScreen, setCurrentScreen] = useState('Home');
+  const [selectedChatId, setSelectedChatId] = useState(null);
   const insets = useSafeAreaInsets();
+
+  useEffect(() => {
+    const onBackPress = () => {
+      if (currentScreen === 'Chat' && selectedChatId) {
+        // Inside a chat room → go back to the chat list
+        setSelectedChatId(null);
+        return true;
+      } else if (currentScreen !== 'Home') {
+        // On any sub-screen or the chat list → go back to Home
+        setCurrentScreen('Home');
+        setSelectedChatId(null);
+        return true;
+      } else {
+        // On Home screen — confirm before exiting
+        Alert.alert(
+          'Exit App',
+          'Are you sure you want to exit?',
+          [
+            { text: 'Cancel', style: 'cancel', onPress: () => null },
+            { text: 'Exit', style: 'destructive', onPress: () => BackHandler.exitApp() },
+          ]
+        );
+        return true;
+      }
+    };
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', onBackPress);
+    return () => backHandler.remove();
+  }, [currentScreen, selectedChatId]);
 
   if (!isLoggedIn) {
     return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
@@ -36,11 +68,14 @@ export default function AppNavigator() {
         {currentScreen === 'transport' && <TransportScreen onBack={() => setCurrentScreen('Home')} />}
         {currentScreen === 'announcement' && <AnnouncementScreen onBack={() => setCurrentScreen('Home')} />}
         {currentScreen === 'timetable' && <TimetableScreen onBack={() => setCurrentScreen('Home')} />}
-        {currentScreen === 'Chat' && (
-          <View className="flex-1 items-center justify-center">
-            <Ionicons name="chatbubbles" size={60} color="#6B7280" />
-            <Text className="mt-4 text-gray-500">Chat coming soon...</Text>
-          </View>
+        {currentScreen === 'Chat' && !selectedChatId && (
+          <ChatListScreen onOpenChat={(id) => setSelectedChatId(id)} />
+        )}
+        {currentScreen === 'Chat' && selectedChatId && (
+          <ChatScreen
+            conversationId={selectedChatId}
+            onBack={() => setSelectedChatId(null)}
+          />
         )}
       </View>
 

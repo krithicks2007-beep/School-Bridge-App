@@ -63,7 +63,7 @@ export default function StudentDetailScreen({ onBack }) {
               {/* Student Photo */}
               <View className="mb-5 relative">
                 <Image
-                  source={require('../../assets/pictures/pic.jpg')}
+                  source={require('../../assets/pictures/student_pic.png')}
                   className="h-28 w-28 rounded-full border-4 border-white shadow-xl"
                   resizeMode="cover"
                 />

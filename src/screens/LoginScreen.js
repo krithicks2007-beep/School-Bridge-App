@@ -36,13 +36,13 @@ export default function LoginScreen({ onLogin }) {
         </View>
 
         <View className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-md shadow-black/5">
-          <View className="mb-5 flex-row items-start">
-            <View className="mr-4 mt-[22px] h-[50px] w-[50px] items-center justify-center rounded-lg bg-gray-100">
-              <Ionicons name="person-outline" size={24} color="#4338CA" />
-            </View>
-            <View className="flex-1">
-              <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Parent ID</Text>
-              <View className="h-11 flex-row items-center rounded-lg border border-gray-200 bg-white">
+          <View className="mb-5">
+            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Parent ID</Text>
+            <View className="flex-row items-center">
+              <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+                <Ionicons name="person-outline" size={22} color="#4338CA" />
+              </View>
+              <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
                 <TextInput
                   autoCapitalize="none"
                   className="h-full flex-1 px-3 text-sm text-gray-800"
@@ -51,13 +51,13 @@ export default function LoginScreen({ onLogin }) {
             </View>
           </View>
 
-          <View className="mb-5 flex-row items-start">
-            <View className="mr-4 mt-[22px] h-[50px] w-[50px] items-center justify-center rounded-lg bg-gray-100">
-              <Ionicons name="lock-closed-outline" size={24} color="#4338CA" />
-            </View>
-            <View className="flex-1">
-              <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Password</Text>
-              <View className="h-11 flex-row items-center rounded-lg border border-gray-200 bg-white">
+          <View className="mb-5">
+            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Password</Text>
+            <View className="flex-row items-center">
+              <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+                <Ionicons name="lock-closed-outline" size={22} color="#4338CA" />
+              </View>
+              <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
                 <TextInput
                   secureTextEntry={!showPassword}
                   className="h-full flex-1 px-3 text-sm text-gray-800"

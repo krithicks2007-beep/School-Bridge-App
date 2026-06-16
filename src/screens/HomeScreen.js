@@ -18,22 +18,22 @@ export default function HomeScreen({ onNavigate }) {
   const renderCard = ({ id, title, subtitle, boldSubtitle, iconLib: IconLib, icon, iconColor, gradient, badgeCount }) => (
     <TouchableOpacity
       key={id}
-      className="mb-4 h-[162px] w-[48%] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
+      className="mb-4 h-[128px] w-[48%] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
       activeOpacity={0.85}
       onPress={() => onNavigate && onNavigate(id)}
     >
-      <LinearGradient colors={gradient} className="flex-1 p-3.5" start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+      <LinearGradient colors={gradient} className="flex-1 p-3" start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         {badgeCount && (
           <View className="absolute right-2.5 top-2.5 z-10 h-[22px] w-[22px] items-center justify-center rounded-full bg-rose-600 shadow-md shadow-rose-600/40">
             <Text className="text-[11px] font-extrabold text-white">{badgeCount}</Text>
           </View>
         )}
 
-        <View className="mb-2 mt-1 h-[52px] items-start justify-start">
-          <IconLib name={icon} size={40} color={iconColor} />
+        <View className="mb-1.5 h-[30px] items-start justify-start">
+          <IconLib name={icon} size={28} color={iconColor} />
         </View>
 
-        <Text className="mb-1 text-sm font-bold text-gray-900">{title}</Text>
+        <Text className="mb-1 text-[15px] font-bold text-gray-900">{title}</Text>
 
         <View className="flex-row items-center justify-between">
           {boldSubtitle ? (
@@ -99,13 +99,10 @@ export default function HomeScreen({ onNavigate }) {
             <View className="flex-1 pr-3">
               <Text className="mb-0.5 text-sm font-medium text-white/85">{getGreeting()}</Text>
               <Text className="mb-2.5 text-[26px] font-black leading-8 text-white" numberOfLines={2}>Mr. Dominic.</Text>
-              <Text className="text-[13px] leading-[19px] text-white/85">
-                Stay connected with your child's learning and school updates.
-              </Text>
             </View>
 
             <Image
-              source={require('../../assets/pictures/pic.jpg')}
+              source={require('../../assets/pictures/student_pic.png')}
               className="h-14 w-14 shrink-0 rounded-full border-2 border-white shadow-md"
               resizeMode="cover"
             />
@@ -113,6 +110,25 @@ export default function HomeScreen({ onNavigate }) {
         </View>
 
         <View className="w-full flex-row flex-wrap justify-between">
+          {renderCard({
+            id: 'announcement',
+            title: 'Announcement',
+            subtitle: 'Sports day details',
+            iconLib: Ionicons,
+            icon: 'megaphone',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+            badgeCount: 1,
+          })}
+          {renderCard({
+            id: 'timetable',
+            title: 'Timetable',
+            subtitle: 'View daily schedule',
+            iconLib: Feather,
+            icon: 'clock',
+            iconColor: '#2563EB',
+            gradient: ['#FFFFFF', '#F0F6FF'],
+          })}
           {renderCard({
             id: 'homework',
             title: 'Homework',
@@ -153,25 +169,6 @@ export default function HomeScreen({ onNavigate }) {
             icon: 'bus',
             iconColor: '#2563EB',
             gradient: ['#FFFFFF', '#F0F6FF'],
-          })}
-          {renderCard({
-            id: 'timetable',
-            title: 'Timetable',
-            subtitle: 'View daily schedule',
-            iconLib: Feather,
-            icon: 'clock',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
-          })}
-          {renderCard({
-            id: 'announcement',
-            title: 'Announcement',
-            subtitle: 'Sports day details',
-            iconLib: Ionicons,
-            icon: 'megaphone',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 1,
           })}
         </View>
       </ScrollView>
