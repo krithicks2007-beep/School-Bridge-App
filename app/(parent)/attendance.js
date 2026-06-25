@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, SafeAreaView, ScrollView, Modal } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Modal } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import Colors from '../constants/Colors';
 import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 
-export default function AttendanceScreen({ onBack }) {
+export default function AttendanceScreen() {
+  const router = useRouter();
   const [selectedDate, setSelectedDate] = useState(null);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [showPicker, setShowPicker] = useState(false);
@@ -54,7 +56,7 @@ export default function AttendanceScreen({ onBack }) {
       case 'Absent': return '#EF4444';
       case 'Holiday': return '#8B5CF6';
       case 'Public Holiday': return '#F59E0B';
-      default: return Colors.border;
+      default: return '#CBD5E1';
     }
   };
 
@@ -64,10 +66,10 @@ export default function AttendanceScreen({ onBack }) {
     setSelectedDate({ day, month: currentMonth, year: currentYear, status });
   };
 
-  // Overall attendance (fixed across entire academic year)
-  const overallAttendance = 86.7;
+  // Overall attendance
+  const overallAttendance = 87.6;
 
-  // Monthly stats for the currently viewed month
+  // Monthly stats
   let workingDays = 0;
   let presentDays = 0;
   let absentDays = 0;
@@ -106,7 +108,7 @@ export default function AttendanceScreen({ onBack }) {
     const weekDays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
     return (
-      <View className="mb-5 overflow-hidden rounded-[24px] bg-white shadow-lg shadow-slate-300/30">
+      <View className="mb-5 overflow-hidden rounded-[24px] bg-white shadow-lg shadow-slate-300/30 border border-slate-100">
         <LinearGradient
           colors={['#4F46E5', '#3730A3']}
           start={{ x: 0, y: 0 }}
@@ -187,15 +189,17 @@ export default function AttendanceScreen({ onBack }) {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
-      <View className="flex-row items-center justify-between rounded-b-[30px] bg-app-primary px-6 pb-6 pt-12 shadow-lg shadow-indigo-500/20">
-        <TouchableOpacity className="h-10 w-10 items-center justify-center bg-white/20 rounded-full" onPress={onBack}>
+      <View className="flex-row items-center justify-between rounded-b-[30px] px-6 pb-6 pt-12 shadow-lg shadow-indigo-500/20"
+        style={{ backgroundColor: '#4F46E5' }}
+      >
+        <TouchableOpacity className="h-10 w-10 items-center justify-center bg-white/20 rounded-full" onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
         </TouchableOpacity>
         <Text className="text-xl font-black text-white tracking-wide">Attendance Tracker</Text>
         <View className="w-10" />
       </View>
 
-      <ScrollView contentContainerClassName="p-6 pb-12">
+      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
         {renderCalendar()}
 
         <View className="mb-6 mt-2 overflow-hidden rounded-[24px] shadow-md shadow-indigo-300/40">

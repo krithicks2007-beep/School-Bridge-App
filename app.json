@@ -3,8 +3,19 @@
     "name": "School-Bridge App",
     "slug": "school-parent-app",
     "version": "1.0.0",
+    "scheme": "school-bridge",
     "orientation": "portrait",
     "userInterfaceStyle": "light",
+    "plugins": [
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Allow School App to access your photos to upload student profile picture.",
+          "cameraPermission": "Allow School App to use camera to take student profile picture."
+        }
+      ]
+    ],
     "assetBundlePatterns": [
       "**/*"
     ],
