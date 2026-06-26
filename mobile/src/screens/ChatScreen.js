@@ -23,7 +23,6 @@ export default function ChatScreen({ conversationId, onBack }) {
   const [inputHeight, setInputHeight] = useState(40);
   const [isSending, setIsSending] = useState(false);
 
-  // ── Load conversation ──────────────────────────────────────────────────────
   const loadConversation = useCallback(async () => {
     const all = await chatService.getConversations();
     const conv = all.find(c => c.id === conversationId);
@@ -43,7 +42,6 @@ export default function ChatScreen({ conversationId, onBack }) {
     }, 80);
   }, []);
 
-  // ── Send message ───────────────────────────────────────────────────────────
   const handleSend = async () => {
     const text = inputText.trim();
     if (!text || isSending) return;
@@ -52,7 +50,6 @@ export default function ChatScreen({ conversationId, onBack }) {
     setInputHeight(40);
     setIsSending(true);
 
-    // Optimistic: show message immediately with 'sending' status
     const tempId = 'temp-' + Date.now();
     const tempMsg = {
       id: tempId,
@@ -71,7 +68,7 @@ export default function ChatScreen({ conversationId, onBack }) {
         prev.map(m => m.id === tempId ? { ...saved, status: 'sent' } : m)
       );
     } catch (_err) {
-      // Mark as failed so user can retry
+
       setMessages(prev =>
         prev.map(m => m.id === tempId ? { ...m, status: 'failed' } : m)
       );
@@ -80,19 +77,16 @@ export default function ChatScreen({ conversationId, onBack }) {
     }
   };
 
-  // Retry: put the failed message text back in the input box
   const handleRetry = (failedMsg) => {
     setMessages(prev => prev.filter(m => m.id !== failedMsg.id));
     setInputText(failedMsg.text);
   };
 
-  // ── Render a single bubble ─────────────────────────────────────────────────
   const renderMessage = ({ item: msg, index }) => {
     const isMe = msg.sender === 'me';
     const isFailed = msg.status === 'failed';
     const isSendingNow = msg.status === 'sending';
 
-    // Date separator above the first message
     const showDateSeparator = index === 0;
 
     return (
@@ -155,7 +149,6 @@ export default function ChatScreen({ conversationId, onBack }) {
     );
   };
 
-  // ── Empty messages state ───────────────────────────────────────────────────
   const EmptyMessages = () => (
     <View className="flex-1 items-center justify-center py-24">
       <Ionicons name="chatbubble-ellipses-outline" size={52} color="#CBD5E1" />
@@ -166,7 +159,6 @@ export default function ChatScreen({ conversationId, onBack }) {
 
   if (!conversation) return null;
 
-  // ── Render ─────────────────────────────────────────────────────────────────
   return (
     <View className="flex-1 bg-slate-50">
       {/* Header */}

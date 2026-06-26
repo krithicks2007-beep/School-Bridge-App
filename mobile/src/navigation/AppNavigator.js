@@ -23,16 +23,16 @@ export default function AppNavigator() {
   useEffect(() => {
     const onBackPress = () => {
       if (currentScreen === 'Chat' && selectedChatId) {
-        // Inside a chat room → go back to the chat list
+
         setSelectedChatId(null);
         return true;
       } else if (currentScreen !== 'Home') {
-        // On any sub-screen or the chat list → go back to Home
+
         setCurrentScreen('Home');
         setSelectedChatId(null);
         return true;
       } else {
-        // On Home screen — confirm before exiting
+
         Alert.alert(
           'Exit App',
           'Are you sure you want to exit?',

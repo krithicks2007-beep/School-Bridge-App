@@ -39,7 +39,6 @@ export default function ChatListScreen({ onOpenChat }) {
 
   const totalUnread = conversations.reduce((sum, c) => sum + (c.unreadCount || 0), 0);
 
-  // ── Empty State ────────────────────────────────────────────────────────────
   if (conversations.length === 0) {
     return (
       <View className="flex-1 bg-slate-50">
@@ -67,7 +66,6 @@ export default function ChatListScreen({ onOpenChat }) {
     );
   }
 
-  // ── Main List ──────────────────────────────────────────────────────────────
   return (
     <View className="flex-1 bg-slate-50">
       {/* Header */}

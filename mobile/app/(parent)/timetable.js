@@ -4,14 +4,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { supabase } from '../../src/services/supabase';
+import { BASE_URL, handleApiResponse } from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const SHORT_MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 const SHORT_DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-// Map subject names to colors for visual variety
 const SUBJECT_COLORS = {
   'English':   { dot: '#4F46E5', bg: '#EEF2FF', text: '#4F46E5' },
   'Social':    { dot: '#0891B2', bg: '#ECFEFF', text: '#0891B2' },
@@ -26,7 +25,7 @@ function getSubjectColor(subject) {
 }
 
 function formatTime(timeStr) {
-  // timeStr like "09:00:00"
+
   const [h, m] = timeStr.split(':');
   const hour = parseInt(h, 10);
   const ampm = hour < 12 ? 'AM' : 'PM';
@@ -68,17 +67,12 @@ export default function TimetableScreen() {
     }
 
     const dayStr = DAY_NAMES[dayIndex];
-    const { data, error: fetchError } = await supabase
-      .from('Timetable')
-      .select('*')
-      .eq('class_id', classId)
-      .eq('day_of_week', dayStr)
-      .order('period_number', { ascending: true });
+    
+    try {
+      const response = await fetch(`${BASE_URL}/api/timetable?class_id=${classId}&day_of_week=${dayStr}`);
+      const result = await handleApiResponse(response);
+      const data = result.data;
 
-    if (fetchError) {
-      setError('Failed to load timetable.');
-    } else {
-      // Deduplicate periods by period_number since the database seems to have duplicate entries
       const uniquePeriods = [];
       const seenPeriods = new Set();
       
@@ -89,8 +83,7 @@ export default function TimetableScreen() {
             uniquePeriods.push(period);
           }
         });
-        
-        // Inject static breaks
+
         if (uniquePeriods.length > 0) {
           uniquePeriods.push({
             id: 'break_short',
@@ -108,13 +101,14 @@ export default function TimetableScreen() {
             end_time: '13:00:00',
             period_number: 4.5
           });
-          
-          // Sort by period_number to interleave breaks correctly
+
           uniquePeriods.sort((a, b) => a.period_number - b.period_number);
         }
       }
       
       setPeriods(uniquePeriods);
+    } catch (err) {
+      setError('Failed to load timetable.');
     }
     setLoading(false);
   };
@@ -123,7 +117,6 @@ export default function TimetableScreen() {
     fetchTimetable(selectedDay);
   }, [selectedDay]);
 
-  // Day selector pills — Mon through Sat only
   const weekDays = [
     { index: 1, label: 'Mon' },
     { index: 2, label: 'Tue' },

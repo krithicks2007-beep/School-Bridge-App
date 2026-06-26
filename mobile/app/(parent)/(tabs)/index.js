@@ -12,7 +12,6 @@ export default function ParentHome() {
   const { student, logoutUser } = useAuthStore();
   const router = useRouter();
 
-  // Use the student's name from the database
   const studentName = student?.name || 'Student';
 
   const getGreeting = () => {

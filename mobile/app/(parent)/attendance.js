@@ -66,10 +66,8 @@ export default function AttendanceScreen() {
     setSelectedDate({ day, month: currentMonth, year: currentYear, status });
   };
 
-  // Overall attendance
   const overallAttendance = 87.6;
 
-  // Monthly stats
   let workingDays = 0;
   let presentDays = 0;
   let absentDays = 0;
@@ -141,8 +139,7 @@ export default function AttendanceScreen() {
               {week.map((day, colIndex) => {
                 const status = getDayStatus(day);
                 const isSelected = selectedDate?.day === day && selectedDate?.month === currentMonth && selectedDate?.year === currentYear;
-                
-                // Use safe inline styles to avoid dynamic class compilation issues
+
                 const cellStyle = day ? {
                   backgroundColor: status === 'N/A' ? '#F1F5F9' : getStatusColor(status) + '15',
                   ...(isSelected ? {

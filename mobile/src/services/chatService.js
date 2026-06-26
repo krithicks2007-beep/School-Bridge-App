@@ -12,7 +12,6 @@
 
 import { conversations as seedData } from '../data/chatData';
 
-// In-memory store (simulates a local DB in Phase 1)
 let _store = seedData.map(c => ({ ...c, messages: [...c.messages] }));
 
 export const chatService = {

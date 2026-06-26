@@ -8,12 +8,10 @@ import { useAuthStore } from '../../../src/store/authStore';
 export default function ProfileScreen() {
   const { student, logoutUser } = useAuthStore();
 
-  // Use real data from Supabase via authStore
   const studentName = student?.name || 'Student';
   const studentGrade = student?.grade || student?.class?.name || '';
   const studentInitial = student?.initial || studentName.charAt(0);
 
-  // Map Supabase columns
   const dob = student?.date_of_birth || '—';
   const bloodGroup = student?.blood_group || '—';
   const fatherName = student?.father_name || '—';
@@ -22,7 +20,6 @@ export default function ProfileScreen() {
   const contactName = student?.father_name || 'Father';
   const contactNumber = student?.contact_phone || '—';
 
-  // Fallbacks for school directory from original screen
   const classTeacher = student?.class_teacher || student?.class?.teacher_name || 'Mrs. Lakshmi';
   const teacherPhone = student?.teacher_phone || '+91 123456789';
   const principalEmail = student?.principal_email || 'principal@abcmatric.edu';

@@ -6,8 +6,7 @@ const Colors = {
   white: '#FFFFFF',
   text: '#1E293B',
   textMuted: '#64748B',
-  
-  // Specific Card Colors (Icon & Light Background)
+
   iconHomework: '#6B46C1', // Purple
   bgHomework: '#E9D8FD',
   iconAttendance: '#059669', // Green
@@ -22,8 +21,7 @@ const Colors = {
   bgAnnouncement: '#FCE7F3',
   themeBadge: '#EF4444', // Bright red for notification badges
   linkColor: '#1D4ED8', // Blue for tappable links
-  
-  // UI Specific
+
   shadow: '#94A3B8',
   border: '#E2E8F0',
 };
