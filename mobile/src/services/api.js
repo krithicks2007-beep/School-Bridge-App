@@ -1,6 +1,6 @@
 
 
-export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'http://10.133.26.243:3000';
+export const BASE_URL = process.env.EXPO_PUBLIC_API_URL || 'https://school-bridge-app.onrender.com';
 
 export const handleApiResponse = async (response) => {
   const data = await response.json();

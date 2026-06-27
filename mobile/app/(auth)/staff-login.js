@@ -1,126 +1,144 @@
-import { useState } from 'react'
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
+import React, { useState } from 'react';
+import { 
+  KeyboardAvoidingView, 
+  Platform, 
+  Text, 
+  TextInput, 
+  View, 
+  Image, 
+  TouchableOpacity, 
+  ImageBackground,
   ActivityIndicator,
-  Alert,
-} from 'react-native'
-import { useRouter } from 'expo-router'
-import { useAuthStore } from '../../src/store/authStore'
+  Alert
+} from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useAuthStore } from '../../src/store/authStore';
 
 export default function StaffLogin() {
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const router = useRouter()
-
-  const { loginAsStaff, loading, error, clearError } = useAuthStore()
+  const [logoError, setLogoError] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  
+  const [name, setName] = useState('');
+  const [password, setPassword] = useState('');
+  
+  const router = useRouter();
+  const { loginAsStaff, loading, error, clearError } = useAuthStore();
 
   const handleLogin = async () => {
-    if (!email || !password) {
-      Alert.alert('Error', 'Please fill all fields')
-      return
+    if (!name || !password) {
+      Alert.alert('Error', 'Please fill all fields');
+      return;
     }
-    await loginAsStaff(email.trim(), password)
-  }
+    await loginAsStaff(name.trim(), password);
+  };
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>School App</Text>
-      <Text style={styles.subtitle}>Staff Login</Text>
-
-      {error && (
-        <Text style={styles.error}>{error}</Text>
-      )}
-
-      <TextInput
-        style={styles.input}
-        placeholder="Email"
-        value={email}
-        onChangeText={(text) => { setEmail(text); clearError() }}
-        keyboardType="email-address"
-        autoCapitalize="none"
-      />
-
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        value={password}
-        onChangeText={(text) => { setPassword(text); clearError() }}
-        secureTextEntry
-      />
-
-      <TouchableOpacity
-        style={styles.button}
-        onPress={handleLogin}
-        disabled={loading}
+    <ImageBackground 
+      source={require('../../assets/pictures/login_bg.png')}
+      className="flex-1 bg-school-bg"
+    >
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        className="flex-1 items-center justify-center px-5 pb-[150px] pt-10"
       >
-        {loading
-          ? <ActivityIndicator color="#fff" />
-          : <Text style={styles.buttonText}>Login</Text>
-        }
-      </TouchableOpacity>
+        <View className="mb-[30px] w-full max-w-[420px] items-center">
+          {!logoError && (
+            <Image 
+              source={require('../../assets/pictures/school_logo.png')} 
+              className="mb-2.5 h-[90px] w-[90px]"
+              resizeMode="contain"
+              onError={() => setLogoError(true)}
+            />
+          )}
 
-      <TouchableOpacity
-        onPress={() => router.push('/(auth)/parent-login')}
-      >
-        <Text style={styles.link}>← Parent Login</Text>
-      </TouchableOpacity>
-    </View>
-  )
+          <Text className="mb-0.5 text-center text-[28px] font-black uppercase tracking-[6px] text-[#1A1B4B]">EINSTEIN</Text>
+          <Text className="mb-3 text-center text-sm font-semibold uppercase tracking-[2px] text-[#3B4A72]">Higher Secondary School</Text>
+
+          <View className="mb-3 h-0.5 w-[60px] rounded-sm bg-school-gold" />
+
+          <View className="rounded-full bg-blue-700 px-[18px] py-1.5 shadow-md shadow-blue-700/30">
+            <Text className="text-[13px] font-semibold tracking-[1px] text-white">Staff & Teacher Portal</Text>
+          </View>
+        </View>
+
+        <View className="w-full max-w-[420px] rounded-2xl bg-white p-6 shadow-md shadow-black/5">
+          
+          {error && (
+            <Text className="mb-4 text-center font-semibold text-red-500">{error}</Text>
+          )}
+
+          {/* Teacher's Name */}
+          <View className="mb-4">
+            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Teacher's Name</Text>
+            <View className="flex-row items-center">
+              <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+                <Ionicons name="person-outline" size={22} color="#4338CA" />
+              </View>
+              <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
+                <TextInput
+                  value={name}
+                  onChangeText={(text) => { setName(text); clearError(); }}
+                  autoCapitalize="words"
+                  autoCorrect={false}
+                  className="h-full flex-1 px-3 text-sm text-gray-800"
+                />
+              </View>
+            </View>
+          </View>
+
+          {/* Password */}
+          <View className="mb-6">
+            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Password</Text>
+            <View className="flex-row items-center">
+              <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
+                <Ionicons name="lock-closed-outline" size={22} color="#4338CA" />
+              </View>
+              <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
+                <TextInput
+                  value={password}
+                  onChangeText={(text) => { setPassword(text); clearError(); }}
+                  secureTextEntry={!showPassword}
+                  className="h-full flex-1 px-3 text-sm text-gray-800"
+                />
+                <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="px-3">
+                  <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+
+          {/* Login Button */}
+          <TouchableOpacity 
+            className="mb-6 h-12 items-center justify-center rounded-lg bg-brand-500" 
+            onPress={handleLogin}
+            disabled={loading}
+            style={{ backgroundColor: '#4338CA' }} // fallback color if tailwind not loaded fully
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text className="text-base font-bold text-white">Login</Text>
+            )}
+          </TouchableOpacity>
+
+          <View className="mb-5 flex-row items-center">
+            <View className="h-px flex-1 bg-gray-200" />
+            <Text className="px-2.5 text-[13px] text-gray-400">OR</Text>
+            <View className="h-px flex-1 bg-gray-200" />
+          </View>
+
+          <TouchableOpacity 
+            className="flex-row items-center justify-center"
+            onPress={() => router.push('/(auth)/parent-login')}
+          >
+            <Ionicons name="people-outline" size={20} color="#4338CA" />
+            <Text className="ml-1.5 text-[13px] text-gray-600">
+              <Text className="font-bold text-[#4338CA]">Parent Login</Text>
+            </Text>
+          </TouchableOpacity>
+        </View>
+      </KeyboardAvoidingView>
+    </ImageBackground>
+  );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingHorizontal: 24,
-    backgroundColor: '#f5f5f5',
-  },
-  title: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#1a1a2e',
-    marginBottom: 8,
-  },
-  subtitle: {
-    fontSize: 18,
-    textAlign: 'center',
-    color: '#666',
-    marginBottom: 32,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#ddd',
-  },
-  button: {
-    backgroundColor: '#1a1a2e',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  error: {
-    color: 'red',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  link: {
-    textAlign: 'center',
-    color: '#4f46e5',
-    fontSize: 15,
-  },
-})

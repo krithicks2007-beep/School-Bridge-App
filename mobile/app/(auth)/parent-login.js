@@ -85,7 +85,6 @@ export default function ParentLogin() {
                   value={name}
                   onChangeText={(text) => { setName(text); clearError(); }}
                   autoCapitalize="words"
-                  placeholder="e.g. John Doe"
                   className="h-full flex-1 px-3 text-sm text-gray-800"
                 />
               </View>
@@ -105,7 +104,6 @@ export default function ParentLogin() {
                   onChangeText={(text) => { setInitial(text); clearError(); }}
                   autoCapitalize="characters"
                   maxLength={3}
-                  placeholder="e.g. A"
                   className="h-full flex-1 px-3 text-sm text-gray-800"
                 />
               </View>
@@ -126,7 +124,6 @@ export default function ParentLogin() {
                   keyboardType="numeric"
                   maxLength={6}
                   secureTextEntry={!showPassword}
-                  placeholder="******"
                   className="h-full flex-1 px-3 text-sm text-gray-800"
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="px-3">

@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, Text, View, TouchableOpacity, Image, Linking } from 'react-native';
+import { ScrollView, Text, View, TouchableOpacity, Linking, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -11,6 +11,7 @@ export default function ProfileScreen() {
   const studentName = student?.name || 'Student';
   const studentGrade = student?.grade || student?.class?.name || '';
   const studentInitial = student?.initial || studentName.charAt(0);
+  const photoUrl = student?.photo_url || null;
 
   const dob = student?.date_of_birth || '—';
   const bloodGroup = student?.blood_group || '—';
@@ -69,13 +70,21 @@ export default function ProfileScreen() {
             end={{ x: 1, y: 1 }}
             className="items-center py-8 px-6"
           >
-            {/* Student Photo */}
+            {/* Student Avatar */}
             <View className="mb-5 relative">
-              <Image
-                source={require('../../../assets/pictures/pic.jpg')}
-                className="h-28 w-28 rounded-full border-4 border-white shadow-xl"
-                resizeMode="cover"
-              />
+              {photoUrl ? (
+                <Image 
+                  source={{ uri: photoUrl }}
+                  className="h-28 w-28 rounded-full border-4 border-white shadow-xl"
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-28 w-28 rounded-full border-4 border-white shadow-xl items-center justify-center" style={{ backgroundColor: '#4F46E5' }}>
+                  <Text style={{ fontSize: 48, fontWeight: '900', color: '#FFFFFF' }}>
+                    {studentName.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
               <View className="absolute bottom-0 right-0 h-8 w-8 bg-emerald-500 rounded-full border-2 border-white items-center justify-center shadow-md">
                 <Ionicons name="checkmark" size={14} color="#FFFFFF" />
               </View>

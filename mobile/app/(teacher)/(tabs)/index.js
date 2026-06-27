@@ -6,13 +6,24 @@ import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useRouter } from 'expo-router';
 
-export default function ParentHome() {
+export default function TeacherHome() {
   const [logoError, setLogoError] = useState(false);
   const insets = useSafeAreaInsets();
-  const { student, logoutUser } = useAuthStore();
+  const { user, profile, logoutUser } = useAuthStore();
   const router = useRouter();
 
-  const studentName = student?.name || 'Student';
+  // Use name from the User table profile row, fallback to email prefix
+  const displayName = profile?.name || user?.email?.split('@')[0] || 'Teacher';
+
+  console.log('[TeacherHome] Full profile object:', JSON.stringify(profile));
+
+  // Build the subtitle from profile fields
+  const classLabel = (() => {
+    const parts = [];
+    if (profile?.role) parts.push(profile.role.charAt(0).toUpperCase() + profile.role.slice(1));
+    if (profile?.subject) parts.push(`• ${profile.subject}`);
+    return parts.length ? parts.join(' ') : 'Staff Member';
+  })();
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -21,12 +32,12 @@ export default function ParentHome() {
     return 'Good Evening,';
   };
 
-  const renderCard = ({ id, title, subtitle, boldSubtitle, iconLib: IconLib, icon, iconColor, gradient, badgeCount }) => (
+  const renderCard = ({ id, title, subtitle, boldSubtitle, iconLib: IconLib, icon, iconColor, gradient, badgeCount, fullWidth }) => (
     <TouchableOpacity
       key={id}
-      className="mb-4 h-[128px] w-[48%] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
+      className={`mb-4 h-[128px] ${fullWidth ? 'w-full' : 'w-[48%]'} overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10`}
       activeOpacity={0.85}
-      onPress={() => router.push(`/(parent)/${id}`)}
+      onPress={() => router.push(`/(teacher)/${id}`)}
     >
       <LinearGradient colors={gradient} className="flex-1 p-3" start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
         {badgeCount && (
@@ -95,28 +106,28 @@ export default function ParentHome() {
         contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-6 w-full overflow-hidden rounded-[24px] shadow-xl shadow-blue-600/25">
+        <View className="mb-6 w-full overflow-hidden rounded-[24px] shadow-xl shadow-indigo-600/25">
           <LinearGradient
-            colors={['#3B82F6', '#1D4ED8']}
+            colors={['#4F46E5', '#3730A3']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             className="flex-row items-center justify-between p-6"
           >
             <View className="flex-1 pr-3">
               <Text className="mb-0.5 text-sm font-medium text-white/85">{getGreeting()}</Text>
-              <Text className="mb-2.5 text-[26px] font-black leading-8 text-white" numberOfLines={2}>{studentName}</Text>
-              <Text className="text-xs font-medium text-white/70">{student?.grade || ''}</Text>
+              <Text className="mb-2.5 text-[26px] font-black leading-8 text-white" numberOfLines={2}>{displayName}</Text>
+              <Text className="text-xs font-medium text-white/70">{classLabel}</Text>
             </View>
 
-            {student?.photo_url ? (
+            {profile?.photo_url ? (
               <Image
-                source={{ uri: student.photo_url }}
+                source={{ uri: profile.photo_url }}
                 style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#fff' }}
                 resizeMode="cover"
               />
             ) : (
-              <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-blue-400 shadow-md">
-                <Text className="text-[22px] font-black text-white">{studentName.charAt(0)}</Text>
+              <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-indigo-400 shadow-md">
+                <Text className="text-[22px] font-black text-white">{displayName.charAt(0)}</Text>
               </View>
             )}
           </LinearGradient>
@@ -124,64 +135,54 @@ export default function ParentHome() {
 
         <View className="w-full flex-row flex-wrap justify-between">
           {renderCard({
-            id: 'announcement',
-            title: 'Announcement',
-            subtitle: 'Sports day details',
-            iconLib: Ionicons,
-            icon: 'megaphone',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 1,
-          })}
-          {renderCard({
-            id: 'timetable',
-            title: 'Timetable',
-            subtitle: 'View daily schedule',
-            iconLib: Feather,
-            icon: 'clock',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            id: 'attendance',
+            title: 'Attendance',
+            subtitle: "Mark today's roll",
+            iconLib: MaterialCommunityIcons,
+            icon: 'calendar-check',
+            iconColor: '#4F46E5',
+            gradient: ['#FFFFFF', '#F5F3FF'],
+            badgeCount: 3,
           })}
           {renderCard({
             id: 'homework',
             title: 'Homework',
-            boldSubtitle: '2',
-            subtitle: 'pending tasks',
+            subtitle: 'Assign tasks',
             iconLib: Ionicons,
             icon: 'book',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 2,
+            iconColor: '#4F46E5',
+            gradient: ['#FFFFFF', '#F5F3FF'],
           })}
           {renderCard({
-            id: 'attendance',
-            title: 'Attendance',
-            boldSubtitle: '87.6%',
-            subtitle: 'overall',
-            iconLib: MaterialCommunityIcons,
-            icon: 'calendar-check',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            id: 'announcement',
+            title: 'Announcements',
+            subtitle: 'Post to parents',
+            iconLib: Ionicons,
+            icon: 'megaphone',
+            iconColor: '#4F46E5',
+            gradient: ['#FFFFFF', '#F5F3FF'],
+            badgeCount: 5,
           })}
           {renderCard({
             id: 'test',
-            title: 'Test Mark',
-            subtitle: 'Maths updated',
+            title: 'Test Marks',
+            subtitle: 'Enter scores',
             iconLib: Ionicons,
             icon: 'school',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 1,
+            iconColor: '#4F46E5',
+            gradient: ['#FFFFFF', '#F5F3FF'],
           })}
+          
+          {/* Full Width Timetable */}
           {renderCard({
-            id: 'transport',
-            title: 'Transport',
-            boldSubtitle: '10m',
-            subtitle: 'Bus arrives in',
-            iconLib: Ionicons,
-            icon: 'bus',
-            iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            id: 'timetable',
+            title: 'Timetable',
+            subtitle: 'View schedule',
+            iconLib: Feather,
+            icon: 'clock',
+            iconColor: '#4F46E5',
+            gradient: ['#FFFFFF', '#F5F3FF'],
+            fullWidth: true,
           })}
         </View>
       </ScrollView>

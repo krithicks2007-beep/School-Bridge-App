@@ -17,14 +17,14 @@ export const parentLogin = async (name, initial, pin) => {
   }
 };
 
-export const staffLogin = async (email, password) => {
+export const staffLogin = async (name, password) => {
   try {
     const response = await fetch(`${BASE_URL}/api/auth/staff-login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ email, password }),
+      body: JSON.stringify({ name, password }),
     });
 
     const data = await handleApiResponse(response);
