@@ -14,7 +14,8 @@
           "photosPermission": "Allow School App to access your photos to upload student profile picture.",
           "cameraPermission": "Allow School App to use camera to take student profile picture."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "assetBundlePatterns": [
       "**/*"

@@ -18,8 +18,8 @@ export default function RootLayout() {
 
     const currentGroup = segments[0]
 
-    if (!role && currentGroup !== '(auth)') {
-      router.replace('/(auth)/parent-login')
+    if (!role && currentGroup !== '(auth)') {
+      router.replace('/(auth)/login')
     } else if (role === 'parent' && student && currentGroup !== '(parent)') {
       router.replace('/(parent)')
     } else if (role === 'teacher' && currentGroup !== '(teacher)') {

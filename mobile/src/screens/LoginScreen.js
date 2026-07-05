@@ -1,10 +1,13 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Text, TextInput, View, Image, TouchableOpacity, ImageBackground } from 'react-native';
+import { KeyboardAvoidingView, Platform, Text, TextInput, View, Image, TouchableOpacity, ImageBackground, useWindowDimensions } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 export default function LoginScreen({ onLogin }) {
   const [logoError, setLogoError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { width } = useWindowDimensions();
+  const isWideLayout = width >= 768;
+  const logoSize = isWideLayout ? 96 : 90;
 
   return (
     <ImageBackground 
@@ -14,12 +17,17 @@ export default function LoginScreen({ onLogin }) {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 items-center justify-center px-5 pb-[150px] pt-10"
+        style={{
+          paddingBottom: isWideLayout ? 32 : 150,
+          paddingTop: isWideLayout ? 28 : 40,
+        }}
       >
-        <View className="mb-[30px] w-full max-w-[420px] items-center">
+        <View className="mb-[30px] w-full max-w-[420px] items-center" style={{ marginBottom: isWideLayout ? 24 : 30 }}>
           {!logoError && (
             <Image 
               source={require('../../assets/pictures/school_logo.png')} 
-              className="mb-2.5 h-[90px] w-[90px]"
+              className="mb-2.5"
+              style={{ height: logoSize, width: logoSize }}
               resizeMode="contain"
               onError={() => setLogoError(true)}
             />

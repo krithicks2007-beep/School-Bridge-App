@@ -62,7 +62,13 @@ export default function TeacherTimetableScreen() {
     const fetchClasses = async () => {
       try {
         if (!profile?.id) return;
-        const response = await fetch(`${BASE_URL}/api/attendance/classes/teacher-handled/${profile.id}`);
+        const response = await fetch(`${BASE_URL}/api/attendance/classes/teacher-handled`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ teacherId: profile.id })
+        });
         const data = await response.json();
         
         if (data.classes && data.classes.length > 0) {

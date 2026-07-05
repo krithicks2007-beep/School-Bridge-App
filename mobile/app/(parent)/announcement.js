@@ -1,12 +1,75 @@
-import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
+import { useAuthStore } from '../../src/store/authStore';
+import { BASE_URL, handleApiResponse } from '../../src/services/api';
 
 export default function AnnouncementScreen() {
   const router = useRouter();
+  const { student } = useAuthStore();
+  const [announcements, setAnnouncements] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      // We assume student has id and class_id
+      const studentId = student?.id || '';
+      const classId = student?.class_id || '';
+      
+      const response = await fetch(`${BASE_URL}/api/announcements?studentId=${studentId}&classId=${classId}`);
+      const data = await handleApiResponse(response);
+      setAnnouncements(data.announcements || []);
+    } catch (error) {
+      Alert.alert('Error', 'Failed to fetch announcements. ' + error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    const options = { day: 'numeric', month: 'short', year: 'numeric' };
+    return date.toLocaleDateString('en-GB', options);
+  };
+
+  const getCardStyles = (audience) => {
+    if (audience && audience.startsWith('student:')) {
+      // Personal message style
+      return {
+        gradient: ['#ffffff', '#fdf4ff'],
+        border: 'border-fuchsia-500',
+        badgeBg: 'bg-fuchsia-100 border border-fuchsia-200',
+        badgeText: 'text-fuchsia-700',
+        label: 'Direct'
+      };
+    } else if (audience && audience.startsWith('class:')) {
+      // Class message style
+      return {
+        gradient: ['#ffffff', '#f0fdf4'],
+        border: 'border-green-500',
+        badgeBg: 'bg-green-100 border border-green-200',
+        badgeText: 'text-green-700',
+        label: 'Class'
+      };
+    }
+    // All message style
+    return {
+      gradient: ['#ffffff', '#f8fafc'],
+      border: 'border-blue-600',
+      badgeBg: 'bg-blue-600 shadow-sm shadow-blue-500/30',
+      badgeText: 'text-white',
+      label: 'School'
+    };
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
@@ -21,38 +84,41 @@ export default function AnnouncementScreen() {
       </View>
 
       <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
-
-        <TouchableOpacity activeOpacity={0.8} className="mb-5 overflow-hidden rounded-[24px] shadow-sm shadow-blue-200">
-          <LinearGradient colors={['#ffffff', '#f8fafc']} className="p-5 border-l-4 border-blue-600">
-            <View className="flex-row justify-between items-start mb-3">
-              <View className="bg-blue-600 px-3 py-1 rounded-full shadow-sm shadow-blue-500/30">
-                <Text className="text-white font-bold text-xs tracking-wider uppercase">New</Text>
-              </View>
-              <View className="flex-row items-center">
-                <Ionicons name="calendar-outline" size={14} color="#94A3B8" />
-                <Text className="text-xs font-bold text-slate-400 ml-1.5">14 Jun 2026</Text>
-              </View>
-            </View>
-            <Text className="mb-2 text-xl font-black text-slate-800">Annual Sports Day</Text>
-            <Text className="text-[15px] leading-6 text-slate-600 font-medium">The Annual Sports Day will be held on 25th June. All students must wear their respective house uniforms.</Text>
-          </LinearGradient>
-        </TouchableOpacity>
-
-        <TouchableOpacity activeOpacity={0.8} className="mb-5 overflow-hidden rounded-[24px] shadow-sm shadow-amber-200">
-          <LinearGradient colors={['#ffffff', '#fcf6f0']} className="p-5 border-l-4 border-amber-500">
-            <View className="flex-row justify-between items-start mb-3">
-              <View className="bg-amber-100 px-3 py-1 rounded-full border border-amber-200">
-                <Text className="text-amber-700 font-bold text-xs tracking-wider uppercase">Notice</Text>
-              </View>
-              <View className="flex-row items-center">
-                <Ionicons name="calendar-outline" size={14} color="#94A3B8" />
-                <Text className="text-xs font-bold text-slate-400 ml-1.5">12 Jun 2026</Text>
-              </View>
-            </View>
-            <Text className="mb-2 text-xl font-black text-slate-800">Holiday Notice</Text>
-            <Text className="text-[15px] leading-6 text-slate-600 font-medium">School will remain closed on 18th June on account of a public holiday. Classes will resume as normal the following day.</Text>
-          </LinearGradient>
-        </TouchableOpacity>
+        
+        {loading ? (
+          <View className="py-10 items-center justify-center">
+            <ActivityIndicator size="large" color="#4F46E5" />
+            <Text className="text-slate-500 mt-4 font-medium">Checking for updates...</Text>
+          </View>
+        ) : announcements.length === 0 ? (
+          <View className="py-10 items-center justify-center">
+            <Ionicons name="notifications-off-outline" size={60} color="#CBD5E1" />
+            <Text className="text-slate-400 mt-4 text-lg font-bold">No announcements yet.</Text>
+          </View>
+        ) : (
+          announcements.map((item) => {
+            const styles = getCardStyles(item.target_audience);
+            return (
+              <TouchableOpacity key={item.id} activeOpacity={0.8} className="mb-5 overflow-hidden rounded-[24px] shadow-sm shadow-slate-200">
+                <LinearGradient colors={styles.gradient} className={`p-5 border-l-4 ${styles.border}`}>
+                  <View className="flex-row justify-between items-start mb-3">
+                    <View className={`px-3 py-1 rounded-full ${styles.badgeBg}`}>
+                      <Text className={`font-bold text-[10px] tracking-wider uppercase ${styles.badgeText}`}>
+                        {styles.label}
+                      </Text>
+                    </View>
+                    <View className="flex-row items-center">
+                      <Ionicons name="calendar-outline" size={14} color="#94A3B8" />
+                      <Text className="text-xs font-bold text-slate-400 ml-1.5">{formatDate(item.created_at)}</Text>
+                    </View>
+                  </View>
+                  <Text className="mb-2 text-xl font-black text-slate-800">{item.title}</Text>
+                  <Text className="text-[15px] leading-6 text-slate-600 font-medium">{item.content}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            );
+          })
+        )}
 
       </ScrollView>
     </SafeAreaView>

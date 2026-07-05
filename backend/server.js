@@ -44,10 +44,22 @@ app.use('/api/students', require('./routes/students'));
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/timetable', require('./routes/timetable'));
 app.use('/api/attendance', require('./routes/attendance'));
+app.use('/api/transport', require('./routes/transport'));
+app.use('/api/announcements', require('./routes/announcements'));
+
+
+// Classes endpoint for admin dropdowns
+app.get('/api/classes', async (req, res) => {
+  const { createClient } = require('@supabase/supabase-js');
+  const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
+  const { data, error } = await supabase.from('Class').select('id, name, section').order('name');
+  if (error) return res.status(500).json({ error: error.message });
+  res.json({ data });
+});
 
 app.use((err, req, res, next) => {
   console.error(err.stack);
-  res.status(500).json({ error: 'Something went wrong' });
+  res.status(500).json({ error: err.stack });
 });
 
 const PORT = process.env.PORT || 3000;

@@ -9,33 +9,32 @@ import {
   TouchableOpacity, 
   ImageBackground,
   ActivityIndicator,
-  Alert
+  Alert,
+  useWindowDimensions
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 
-export default function ParentLogin() {
+export default function Login() {
   const [logoError, setLogoError] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { width } = useWindowDimensions();
   
-  const [name, setName] = useState('');
-  const [initial, setInitial] = useState('');
-  const [pin, setPin] = useState('');
+  const [regId, setRegId] = useState('');
+  const [password, setPassword] = useState('');
   
   const router = useRouter();
-  const { loginAsParent, loading, error, clearError } = useAuthStore();
+  const { loginUser, loading, error, clearError } = useAuthStore();
+  const isWideLayout = width >= 768;
+  const logoSize = isWideLayout ? 96 : 90;
 
   const handleLogin = async () => {
-    if (!name || !initial || !pin) {
+    if (!regId || !password) {
       Alert.alert('Error', 'Please fill all fields');
       return;
     }
-    if (pin.length !== 6) {
-      Alert.alert('Error', 'PIN must be 6 digits');
-      return;
-    }
-    await loginAsParent(name.trim(), initial.trim(), pin.trim());
+    await loginUser(regId.trim(), password.trim());
   };
 
   return (
@@ -46,12 +45,17 @@ export default function ParentLogin() {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         className="flex-1 items-center justify-center px-5 pb-[150px] pt-10"
+        style={{
+          paddingBottom: isWideLayout ? 32 : 150,
+          paddingTop: isWideLayout ? 28 : 40,
+        }}
       >
-        <View className="mb-[30px] w-full max-w-[420px] items-center">
+        <View className="mb-[30px] w-full max-w-[420px] items-center" style={{ marginBottom: isWideLayout ? 24 : 30 }}>
           {!logoError && (
             <Image 
               source={require('../../assets/pictures/school_logo.png')} 
-              className="mb-2.5 h-[90px] w-[90px]"
+              className="mb-2.5"
+              style={{ height: logoSize, width: logoSize }}
               resizeMode="contain"
               onError={() => setLogoError(true)}
             />
@@ -63,7 +67,7 @@ export default function ParentLogin() {
           <View className="mb-3 h-0.5 w-[60px] rounded-sm bg-school-gold" />
 
           <View className="rounded-full bg-blue-700 px-[18px] py-1.5 shadow-md shadow-blue-700/30">
-            <Text className="text-[13px] font-semibold tracking-[1px] text-white">Student & Parent Portal</Text>
+            <Text className="text-[13px] font-semibold tracking-[1px] text-white">Portal Login</Text>
           </View>
         </View>
 
@@ -73,58 +77,39 @@ export default function ParentLogin() {
             <Text className="mb-4 text-center font-semibold text-red-500">{error}</Text>
           )}
 
-          {/* Student Full Name */}
+          {/* Reg ID */}
           <View className="mb-4">
-            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Student Full Name</Text>
+            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Registration ID</Text>
             <View className="flex-row items-center">
               <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
-                <Ionicons name="person-outline" size={22} color="#4338CA" />
+                <Ionicons name="card-outline" size={22} color="#4338CA" />
               </View>
               <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
                 <TextInput
-                  value={name}
-                  onChangeText={(text) => { setName(text); clearError(); }}
-                  autoCapitalize="words"
+                  value={regId}
+                  onChangeText={(text) => { setRegId(text); clearError(); }}
+                  autoCapitalize="none"
                   className="h-full flex-1 px-3 text-sm text-gray-800"
+                  placeholder="Enter Reg ID"
                 />
               </View>
             </View>
           </View>
 
-          {/* Initial */}
-          <View className="mb-4">
-            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Initial</Text>
-            <View className="flex-row items-center">
-              <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
-                <Ionicons name="text-outline" size={22} color="#4338CA" />
-              </View>
-              <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
-                <TextInput
-                  value={initial}
-                  onChangeText={(text) => { setInitial(text); clearError(); }}
-                  autoCapitalize="characters"
-                  maxLength={3}
-                  className="h-full flex-1 px-3 text-sm text-gray-800"
-                />
-              </View>
-            </View>
-          </View>
-
-          {/* 6-Digit PIN */}
+          {/* Password */}
           <View className="mb-6">
-            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">6-Digit PIN</Text>
+            <Text className="mb-1.5 text-sm font-bold text-[#1A1B4B]">Password / PIN</Text>
             <View className="flex-row items-center">
               <View className="mr-3 h-12 w-12 items-center justify-center rounded-lg bg-gray-100">
                 <Ionicons name="lock-closed-outline" size={22} color="#4338CA" />
               </View>
               <View className="h-12 flex-1 flex-row items-center rounded-lg border border-gray-200 bg-white">
                 <TextInput
-                  value={pin}
-                  onChangeText={(text) => { setPin(text); clearError(); }}
-                  keyboardType="numeric"
-                  maxLength={6}
+                  value={password}
+                  onChangeText={(text) => { setPassword(text); clearError(); }}
                   secureTextEntry={!showPassword}
                   className="h-full flex-1 px-3 text-sm text-gray-800"
+                  placeholder="Enter Password"
                 />
                 <TouchableOpacity onPress={() => setShowPassword(!showPassword)} className="px-3">
                   <Ionicons name={showPassword ? "eye-outline" : "eye-off-outline"} size={20} color="#9CA3AF" />
@@ -135,7 +120,7 @@ export default function ParentLogin() {
 
           {/* Login Button */}
           <TouchableOpacity 
-            className="mb-6 h-12 items-center justify-center rounded-lg bg-brand-500" 
+            className="h-12 items-center justify-center rounded-lg bg-brand-500" 
             onPress={handleLogin}
             disabled={loading}
             style={{ backgroundColor: '#4338CA' }} // fallback color if tailwind not loaded fully
@@ -147,21 +132,6 @@ export default function ParentLogin() {
             )}
           </TouchableOpacity>
 
-          <View className="mb-5 flex-row items-center">
-            <View className="h-px flex-1 bg-gray-200" />
-            <Text className="px-2.5 text-[13px] text-gray-400">OR</Text>
-            <View className="h-px flex-1 bg-gray-200" />
-          </View>
-
-          <TouchableOpacity 
-            className="flex-row items-center justify-center"
-            onPress={() => router.push('/(auth)/staff-login')}
-          >
-            <Ionicons name="school-outline" size={20} color="#4338CA" />
-            <Text className="ml-1.5 text-[13px] text-gray-600">
-              <Text className="font-bold text-[#4338CA]">Staff & Teacher Login</Text>
-            </Text>
-          </TouchableOpacity>
         </View>
       </KeyboardAvoidingView>
     </ImageBackground>
