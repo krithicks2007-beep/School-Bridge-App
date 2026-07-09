@@ -36,7 +36,7 @@ const getStudents = async (req, res, next) => {
 
 const createAnnouncement = async (req, res, next) => {
   try {
-    const { title, content, target_audience, author_id } = req.body;
+    const { title, content, target_audience, author_id, expires_at } = req.body;
 
     if (!title || !content) {
       return res.status(400).json({ error: 'Title and content are required' });
@@ -48,7 +48,8 @@ const createAnnouncement = async (req, res, next) => {
         title, 
         content, 
         target_audience: target_audience || 'all',
-        author_id: null 
+        author_id: null,
+        expires_at: expires_at || null
       }])
       .select();
 
@@ -82,8 +83,15 @@ const getAnnouncements = async (req, res, next) => {
       return res.status(500).json({ error: error.message });
     }
 
-    // Filter class announcements precisely
+    // Filter class announcements precisely and filter out expired announcements
+    const now = new Date();
     const filteredData = data.filter(ann => {
+      // Expiry check
+      if (ann.expires_at) {
+        const expires = new Date(ann.expires_at);
+        if (expires < now) return false;
+      }
+
       if (ann.target_audience === 'all') return true;
       if (studentId && ann.target_audience === `student:${studentId}`) return true;
       if (classId && ann.target_audience.startsWith('class:')) {

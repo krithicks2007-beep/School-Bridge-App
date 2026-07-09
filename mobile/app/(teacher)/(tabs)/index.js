@@ -1,21 +1,42 @@
-import React, { useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/store/authStore';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { BASE_URL } from '../../../src/services/api';
+import { countUnreadSince, getLastReadAt } from '../../../src/services/readAlerts';
 
 export default function TeacherHome() {
   const [logoError, setLogoError] = useState(false);
   const insets = useSafeAreaInsets();
   const { user, profile, logoutUser } = useAuthStore();
   const router = useRouter();
+  const [announcementCount, setAnnouncementCount] = useState(0);
 
   // Use name from the User table profile row, fallback to email prefix
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Teacher';
 
   console.log('[TeacherHome] Full profile object:', JSON.stringify(profile));
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchAnnouncementCount = async () => {
+        try {
+          const response = await fetch(`${BASE_URL}/api/announcements`);
+          const data = response.ok ? await response.json() : {};
+          const lastReadAnnouncements = await getLastReadAt('staff-announcements', profile?.id || user?.id || user?.email);
+          setAnnouncementCount(countUnreadSince(data.announcements, lastReadAnnouncements));
+        } catch (error) {
+          console.error('Failed to fetch staff home announcement count:', error);
+          setAnnouncementCount(0);
+        }
+      };
+
+      fetchAnnouncementCount();
+    }, [profile?.id, user?.id, user?.email])
+  );
 
   // Build the subtitle from profile fields
   const classLabel = (() => {
@@ -142,7 +163,6 @@ export default function TeacherHome() {
             icon: 'calendar-check',
             iconColor: '#4F46E5',
             gradient: ['#FFFFFF', '#F5F3FF'],
-            badgeCount: 3,
           })}
           {renderCard({
             id: 'homework',
@@ -156,12 +176,12 @@ export default function TeacherHome() {
           {renderCard({
             id: 'announcement',
             title: 'Announcements',
-            subtitle: 'Post to parents',
+            subtitle: announcementCount > 0 ? 'New updates' : 'Post to parents',
             iconLib: Ionicons,
             icon: 'megaphone',
             iconColor: '#4F46E5',
             gradient: ['#FFFFFF', '#F5F3FF'],
-            badgeCount: 5,
+            badgeCount: announcementCount || undefined,
           })}
           {renderCard({
             id: 'test',

@@ -6,6 +6,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
 import { BASE_URL, handleApiResponse } from '../../src/services/api';
+import { markReadNow } from '../../src/services/readAlerts';
 
 export default function AnnouncementScreen() {
   const router = useRouter();
@@ -27,6 +28,7 @@ export default function AnnouncementScreen() {
       const response = await fetch(`${BASE_URL}/api/announcements?studentId=${studentId}&classId=${classId}`);
       const data = await handleApiResponse(response);
       setAnnouncements(data.announcements || []);
+      await markReadNow('parent-announcements', student?.id);
     } catch (error) {
       Alert.alert('Error', 'Failed to fetch announcements. ' + error.message);
     } finally {

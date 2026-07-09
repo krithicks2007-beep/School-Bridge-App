@@ -40,19 +40,32 @@ app.get('/debug/tables', async (req, res) => {
 });
 
 
-app.use('/api/students', require('./routes/students'));
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/timetable', require('./routes/timetable'));
-app.use('/api/attendance', require('./routes/attendance'));
-app.use('/api/transport', require('./routes/transport'));
-app.use('/api/announcements', require('./routes/announcements'));
+const studentsRoutes = require('./routes/students');
+const authRoutes = require('./routes/auth');
+const teachersRoutes = require('./routes/teachers');
+const announcementsRoutes = require('./routes/announcements');
+const marksRoutes = require('./routes/marks');
+const transportRoutes = require('./routes/transport');
+const attendanceRoutes = require('./routes/attendance');
+const timetableRoutes = require('./routes/timetable');
+const homeworkRoutes = require('./routes/homework');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/students', studentsRoutes);
+app.use('/api/teachers', teachersRoutes);
+app.use('/api/announcements', announcementsRoutes);
+app.use('/api/marks', marksRoutes);
+app.use('/api/transport', transportRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/timetable', timetableRoutes);
+app.use('/api/homework', homeworkRoutes);
 
 
 // Classes endpoint for admin dropdowns
 app.get('/api/classes', async (req, res) => {
   const { createClient } = require('@supabase/supabase-js');
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
-  const { data, error } = await supabase.from('Class').select('id, name, section').order('name');
+  const { data, error } = await supabase.from('Class').select('id, name, section, Teacher!fk_class_teacher(name)').order('name');
   if (error) return res.status(500).json({ error: error.message });
   res.json({ data });
 });

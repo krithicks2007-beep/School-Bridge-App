@@ -1,9 +1,19 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View, Text, TouchableOpacity, SafeAreaView, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
+import { markReadNow } from '../services/readAlerts';
+import { useAuthStore } from '../store/authStore';
 
 export default function TestMarkScreen({ onBack }) {
+  const { student } = useAuthStore();
+
+  useEffect(() => {
+    markReadNow('parent-test-marks', student?.id).catch((error) => {
+      console.error('Failed to mark test marks as read:', error);
+    });
+  }, [student?.id]);
+
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       <View className="flex-row items-center justify-between rounded-b-[30px] bg-app-primary px-6 pb-6 pt-12 shadow-lg shadow-indigo-500/20">

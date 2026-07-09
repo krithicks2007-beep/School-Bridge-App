@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StatusBar, TextInput, ActivityIndicator, Modal, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar, TextInput, ActivityIndicator, Modal, Image, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { BASE_URL } from '../../src/services/api';
+import { markReadNow } from '../../src/services/readAlerts';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function Announcement() {
   const router = useRouter();
@@ -16,14 +18,23 @@ export default function Announcement() {
   const [activeClassId, setActiveClassId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [studentsData, setStudentsData] = useState({});
 
+  const [title, setTitle] = useState('');
+  const [content, setContent] = useState('');
+  const [expiresAt, setExpiresAt] = useState(new Date(Date.now() + 86400000 * 7)); // Default: 7 days
+  const [showDatePicker, setShowDatePicker] = useState(false);
+
   useEffect(() => {
+    markReadNow('staff-announcements', profile?.id).catch((error) => {
+      console.error('Failed to mark staff announcements as read:', error);
+    });
+
     const fetchClassesAndStudents = async () => {
       try {
         if (!profile?.id) return;
         
-        // Fetch classes handled by the teacher for the dropdown
         const response = await fetch(`${BASE_URL}/api/attendance/classes/teacher-handled`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -39,7 +50,6 @@ export default function Announcement() {
           setActiveClassId(data.classes[0].id);
         }
 
-        // Fetch students for all teacher-handled classes
         const studentsRes = await fetch(`${BASE_URL}/api/attendance/students/teacher-handled`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -62,6 +72,63 @@ export default function Announcement() {
 
   const currentClassName = activeClassId ? classes.find(c => c.id === activeClassId)?.name : 'Select Class';
   const currentStudents = activeClassId ? (studentsData[activeClassId] || []) : [];
+
+  const handlePostAnnouncement = async () => {
+    if (!title.trim() || !content.trim()) {
+      Alert.alert('Error', 'Please enter a title and content.');
+      return;
+    }
+    if (!activeClassId) {
+      Alert.alert('Error', 'Please select a class.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const payload = {
+        title: title.trim(),
+        content: content.trim(),
+        target_audience: `class:${activeClassId}`,
+        author_id: profile?.id,
+        expires_at: expiresAt.toISOString()
+      };
+
+      const response = await fetch(`${BASE_URL}/api/announcements`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to send announcement');
+      }
+
+      setTitle('');
+      setContent('');
+      
+      if (Platform.OS === 'web') {
+        alert('Announcement sent successfully!');
+        router.back();
+      } else {
+        Alert.alert('Success', 'Announcement sent successfully!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onChangeDate = (event, selectedDate) => {
+    const currentDate = selectedDate || expiresAt;
+    setShowDatePicker(Platform.OS === 'ios');
+    setExpiresAt(currentDate);
+  };
 
   const getInitials = (name) => {
     if (!name) return 'S';
@@ -156,16 +223,89 @@ export default function Announcement() {
                 <Text className="ml-3 text-gray-700 font-medium">All Parents ({currentClassName})</Text>
               </View>
 
+              <Text className="text-sm font-semibold text-gray-700 mb-1.5">Title</Text>
+              <TextInput 
+                placeholder="e.g. Field Trip Tomorrow"
+                value={title}
+                onChangeText={setTitle}
+                className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 text-gray-800 font-medium"
+              />
+
               <Text className="text-sm font-semibold text-gray-700 mb-1.5">Message Content</Text>
               <TextInput 
                 placeholder="Type your important announcement here..."
                 multiline
                 numberOfLines={5}
+                value={content}
+                onChangeText={setContent}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 text-gray-800 font-medium h-32 text-top"
                 style={{ textAlignVertical: 'top' }}
               />
+
+              <Text className="text-sm font-semibold text-gray-700 mb-1.5">Valid Until</Text>
+              {Platform.OS === 'web' ? (
+                <input
+                  type="datetime-local"
+                  value={expiresAt instanceof Date && !isNaN(expiresAt) ? expiresAt.toISOString().slice(0, 16) : ''}
+                  onChange={(e) => {
+                    const newDate = new Date(e.target.value);
+                    if (!isNaN(newDate.getTime())) {
+                      setExpiresAt(newDate);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    marginBottom: '1rem',
+                    color: '#1F2937',
+                    fontWeight: '500',
+                    fontFamily: 'inherit',
+                    fontSize: '14px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(true)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 flex-row justify-between items-center"
+                  >
+                    <Text className="text-gray-800 font-medium">
+                      {expiresAt.toLocaleString()}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={expiresAt}
+                      mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                      display="default"
+                      onChange={onChangeDate}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                </>
+              )}
             </View>
-            
+
+            <TouchableOpacity 
+              onPress={handlePostAnnouncement}
+              disabled={submitting}
+              className={`w-full py-4 rounded-2xl shadow-lg items-center flex-row justify-center mb-10 mt-2 ${submitting ? 'bg-indigo-400 shadow-indigo-400/40' : 'bg-indigo-600 shadow-indigo-600/40'}`}
+            >
+              {submitting ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="paper-plane" size={20} color="white" className="mr-2" />
+                  <Text className="text-white font-bold text-lg ml-2">Send Announcement</Text>
+                </>
+              )}
+            </TouchableOpacity>
+
             <Text className="text-xs font-bold text-gray-400 mb-3 tracking-wider uppercase">
               {currentClassName} — {currentStudents.length} STUDENTS
             </Text>
@@ -197,11 +337,8 @@ export default function Announcement() {
                 </View>
               ))
             )}
-
-            <TouchableOpacity className="w-full bg-indigo-600 py-4 rounded-2xl shadow-lg shadow-indigo-600/40 items-center flex-row justify-center mb-10 mt-2">
-              <Ionicons name="paper-plane" size={20} color="white" className="mr-2" />
-              <Text className="text-white font-bold text-lg ml-2">Send Announcement</Text>
-            </TouchableOpacity>
+            
+            <View className="h-10" />
           </ScrollView>
         )}
       </View>

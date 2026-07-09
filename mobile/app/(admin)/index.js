@@ -147,7 +147,7 @@ export default function AdminHome() {
             })}
           </View>
 
-          <View className="w-full">
+          <View className="w-full flex-row justify-between mb-4">
             {renderCard({
               id: 'timetable',
               title: 'Timetable',
@@ -157,7 +157,34 @@ export default function AdminHome() {
               iconColor: '#9333EA',
               gradient: ['#FFFFFF', '#F5F3FF'],
               route: '/(admin)/timetable',
-              customWidth: 'w-full',
+              customWidth: 'w-[48%]',
+              customHeight: 'h-[140px]', 
+            })}
+            {renderCard({
+              id: 'students',
+              title: 'Update Students',
+              subtitle: 'Add / Delete',
+              iconLib: Ionicons,
+              icon: 'people',
+              iconColor: '#9333EA',
+              gradient: ['#FFFFFF', '#F5F3FF'],
+              route: '/(admin)/students',
+              customWidth: 'w-[48%]',
+              customHeight: 'h-[140px]', 
+            })}
+          </View>
+          
+          <View className="w-full flex-row justify-between">
+            {renderCard({
+              id: 'teachers',
+              title: 'Update Staff',
+              subtitle: 'Add / Delete',
+              iconLib: Ionicons,
+              icon: 'person',
+              iconColor: '#9333EA',
+              gradient: ['#FFFFFF', '#F5F3FF'],
+              route: '/(admin)/teachers',
+              customWidth: 'w-[48%]',
               customHeight: 'h-[140px]', 
             })}
           </View>

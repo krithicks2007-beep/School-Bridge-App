@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Modal, TextInput, Alert, KeyboardAvoidingView, Platform } from 'react-native';
+import React, { useState, useEffect, useMemo } from 'react';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Modal, TextInput, Alert, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -12,6 +12,7 @@ export default function TransportManagement() {
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null);
   const [students, setStudents] = useState([]);
+  const [searchByClass, setSearchByClass] = useState({});
   const [loadingClasses, setLoadingClasses] = useState(true);
   const [loadingStudents, setLoadingStudents] = useState(false);
 
@@ -63,6 +64,39 @@ export default function TransportManagement() {
     } finally {
       setLoadingStudents(false);
     }
+  };
+
+  const currentSearch = searchByClass[selectedClass?.id] || { name: '', regId: '' };
+
+  const filteredStudents = useMemo(() => {
+    const nameQuery = currentSearch.name.trim().toLowerCase();
+    const regIdQuery = currentSearch.regId.trim().toLowerCase();
+
+    if (!nameQuery && !regIdQuery) return students;
+
+    return students.filter((student) => {
+      const studentName = (student.name || '').toLowerCase();
+      const studentRegId = (student.reg_id || '').toLowerCase();
+
+      return (
+        (!nameQuery || studentName.includes(nameQuery)) &&
+        (!regIdQuery || studentRegId.includes(regIdQuery))
+      );
+    });
+  }, [students, currentSearch.name, currentSearch.regId]);
+
+  const updateSearch = (field, value) => {
+    if (!selectedClass?.id) return;
+
+    setSearchByClass((prev) => ({
+      ...prev,
+      [selectedClass.id]: {
+        name: '',
+        regId: '',
+        ...prev[selectedClass.id],
+        [field]: value,
+      },
+    }));
   };
 
   const openEditModal = (student) => {
@@ -167,6 +201,40 @@ export default function TransportManagement() {
           Students in {selectedClass?.name} {selectedClass?.section ? `(${selectedClass?.section})` : ''}
         </Text>
 
+        <View className="mb-4">
+          <View className="mb-3 flex-row items-center rounded-xl border border-gray-200 bg-white px-3">
+            <Ionicons name="person-outline" size={19} color="#9CA3AF" />
+            <TextInput
+              className="h-12 flex-1 px-3 text-sm font-medium text-gray-800"
+              style={Platform.OS === 'web' ? { outlineStyle: 'none' } : undefined}
+              placeholder="Search by student name"
+              value={currentSearch.name}
+              onChangeText={(text) => updateSearch('name', text)}
+            />
+            {currentSearch.name.length > 0 && (
+              <TouchableOpacity onPress={() => updateSearch('name', '')} className="p-2">
+                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
+          </View>
+
+          <View className="flex-row items-center rounded-xl border border-gray-200 bg-white px-3">
+            <Ionicons name="card-outline" size={19} color="#9CA3AF" />
+            <TextInput
+              className="h-12 flex-1 px-3 text-sm font-medium text-gray-800"
+              style={Platform.OS === 'web' ? { outlineStyle: 'none' } : undefined}
+              placeholder="Search by registration ID"
+              value={currentSearch.regId}
+              onChangeText={(text) => updateSearch('regId', text)}
+            />
+            {currentSearch.regId.length > 0 && (
+              <TouchableOpacity onPress={() => updateSearch('regId', '')} className="p-2">
+                <Ionicons name="close-circle" size={18} color="#9CA3AF" />
+              </TouchableOpacity>
+            )}
+          </View>
+        </View>
+
         {loadingStudents ? (
           <View className="flex-1 items-center justify-center">
             <ActivityIndicator size="large" color="#3B82F6" />
@@ -177,11 +245,19 @@ export default function TransportManagement() {
             <Ionicons name="people-outline" size={48} color="#D1D5DB" />
             <Text className="mt-4 text-center text-lg font-medium text-gray-500">No students found in this class.</Text>
           </View>
+        ) : filteredStudents.length === 0 ? (
+          <View className="flex-1 items-center justify-center">
+            <Ionicons name="search-outline" size={48} color="#D1D5DB" />
+            <Text className="mt-4 text-center text-lg font-medium text-gray-500">No students match your search.</Text>
+          </View>
         ) : (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}>
-            {students.map((student) => (
+          <FlatList
+            data={filteredStudents}
+            keyExtractor={(student) => student.id.toString()}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+            renderItem={({ item: student }) => (
               <TouchableOpacity
-                key={student.id}
                 onPress={() => openEditModal(student)}
                 className="mb-3 flex-row items-center rounded-2xl border border-gray-100 bg-white p-4 shadow-sm"
                 activeOpacity={0.7}
@@ -209,8 +285,8 @@ export default function TransportManagement() {
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
               </TouchableOpacity>
-            ))}
-          </ScrollView>
+            )}
+          />
         )}
       </View>
 

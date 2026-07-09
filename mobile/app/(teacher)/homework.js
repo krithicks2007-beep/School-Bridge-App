@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, StatusBar, TextInput, ActivityIndicator, Modal, Image } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StatusBar, TextInput, ActivityIndicator, Modal, Image, Alert, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
 import { BASE_URL } from '../../src/services/api';
+import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function Homework() {
   const router = useRouter();
@@ -16,14 +17,20 @@ export default function Homework() {
   const [activeClassId, setActiveClassId] = useState(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [submitting, setSubmitting] = useState(false);
   const [studentsData, setStudentsData] = useState({});
+
+  // Form State
+  const [title, setTitle] = useState('');
+  const [description, setDescription] = useState('');
+  const [expiresAt, setExpiresAt] = useState(new Date(Date.now() + 86400000)); // Default: tomorrow
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
     const fetchClassesAndStudents = async () => {
       try {
         if (!profile?.id) return;
         
-        // Fetch classes handled by the teacher for the dropdown
         const response = await fetch(`${BASE_URL}/api/attendance/classes/teacher-handled`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -39,7 +46,6 @@ export default function Homework() {
           setActiveClassId(data.classes[0].id);
         }
 
-        // Fetch students for all teacher-handled classes
         const studentsRes = await fetch(`${BASE_URL}/api/attendance/students/teacher-handled`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -62,6 +68,62 @@ export default function Homework() {
 
   const currentClassName = activeClassId ? classes.find(c => c.id === activeClassId)?.name : 'Select Class';
   const currentStudents = activeClassId ? (studentsData[activeClassId] || []) : [];
+
+  const handlePostHomework = async () => {
+    if (!title.trim() || !description.trim()) {
+      Alert.alert('Error', 'Please enter a title and description.');
+      return;
+    }
+    if (!activeClassId) {
+      Alert.alert('Error', 'Please select a class.');
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+    const response = await fetch(`${BASE_URL}/api/homework`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        class_id: activeClassId,
+        teacher_id: profile.id,
+        subject: profile.subject || 'General',
+        title,
+        description,
+        expires_at: expiresAt.toISOString()
+      })
+    });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to post homework');
+      }
+
+      setTitle('');
+      setDescription('');
+      
+      if (Platform.OS === 'web') {
+        alert('Homework posted successfully!');
+        router.back();
+      } else {
+        Alert.alert('Success', 'Homework posted successfully!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
+    } catch (error) {
+      console.error(error);
+      Alert.alert('Error', error.message);
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const onChangeDate = (event, selectedDate) => {
+    const currentDate = selectedDate || expiresAt;
+    setShowDatePicker(Platform.OS === 'ios');
+    setExpiresAt(currentDate);
+  };
 
   const getInitials = (name) => {
     if (!name) return 'S';
@@ -151,6 +213,8 @@ export default function Homework() {
               <Text className="text-sm font-semibold text-gray-700 mb-1.5">Topic / Title</Text>
               <TextInput 
                 placeholder={`e.g. ${profile?.subject || 'General'} Practice Set 1`}
+                value={title}
+                onChangeText={setTitle}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 text-gray-800 font-medium"
               />
 
@@ -159,10 +223,75 @@ export default function Homework() {
                 placeholder="Describe the homework details..."
                 multiline
                 numberOfLines={4}
+                value={description}
+                onChangeText={setDescription}
                 className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 text-gray-800 font-medium h-28 text-top"
                 style={{ textAlignVertical: 'top' }}
               />
+
+              <Text className="text-sm font-semibold text-gray-700 mb-1.5">Valid Until</Text>
+              {Platform.OS === 'web' ? (
+                <input
+                  type="datetime-local"
+                  value={expiresAt instanceof Date && !isNaN(expiresAt) ? expiresAt.toISOString().slice(0, 16) : ''}
+                  onChange={(e) => {
+                    const newDate = new Date(e.target.value);
+                    if (!isNaN(newDate.getTime())) {
+                      setExpiresAt(newDate);
+                    }
+                  }}
+                  style={{
+                    backgroundColor: 'white',
+                    border: '1px solid #E5E7EB',
+                    borderRadius: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    marginBottom: '1rem',
+                    color: '#1F2937',
+                    fontWeight: '500',
+                    fontFamily: 'inherit',
+                    fontSize: '14px',
+                    width: '100%',
+                    boxSizing: 'border-box'
+                  }}
+                />
+              ) : (
+                <>
+                  <TouchableOpacity
+                    onPress={() => setShowDatePicker(true)}
+                    className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 flex-row justify-between items-center"
+                  >
+                    <Text className="text-gray-800 font-medium">
+                      {expiresAt.toLocaleString()}
+                    </Text>
+                    <Ionicons name="calendar-outline" size={20} color="#6B7280" />
+                  </TouchableOpacity>
+                  {showDatePicker && (
+                    <DateTimePicker
+                      value={expiresAt}
+                      mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                      display="default"
+                      onChange={onChangeDate}
+                      minimumDate={new Date()}
+                    />
+                  )}
+                </>
+              )}
             </View>
+
+            <TouchableOpacity 
+              onPress={handlePostHomework}
+              disabled={submitting}
+              className={`w-full py-4 rounded-2xl shadow-lg items-center flex-row justify-center mb-10 mt-2 ${submitting ? 'bg-indigo-400 shadow-indigo-400/40' : 'bg-indigo-600 shadow-indigo-600/40'}`}
+            >
+              {submitting ? (
+                <ActivityIndicator color="white" />
+              ) : (
+                <>
+                  <Ionicons name="send" size={20} color="white" className="mr-2" />
+                  <Text className="text-white font-bold text-lg ml-2">Post Homework</Text>
+                </>
+              )}
+            </TouchableOpacity>
 
             <Text className="text-xs font-bold text-gray-400 mb-3 tracking-wider uppercase">
               {currentClassName} — {currentStudents.length} STUDENTS
@@ -175,7 +304,6 @@ export default function Homework() {
             ) : (
               currentStudents.map((student, index) => (
                 <View key={student.id} className="flex-row items-center bg-white p-3 mb-3 rounded-2xl border border-gray-100 shadow-sm shadow-gray-200/50">
-                  {/* Avatar */}
                   {student.photo_url ? (
                     <Image
                       source={{ uri: student.photo_url }}
@@ -187,7 +315,6 @@ export default function Homework() {
                     </View>
                   )}
 
-                  {/* Info */}
                   <View className="flex-1 justify-center">
                     <Text className="font-bold text-gray-800 text-[15px] mb-0.5">{student.name}</Text>
                     <Text className="text-gray-400 text-xs font-medium">Roll No. {index + 1}</Text>
@@ -196,10 +323,8 @@ export default function Homework() {
               ))
             )}
             
-            <TouchableOpacity className="w-full bg-indigo-600 py-4 rounded-2xl shadow-lg shadow-indigo-600/40 items-center flex-row justify-center mb-10 mt-2">
-              <Ionicons name="send" size={20} color="white" className="mr-2" />
-              <Text className="text-white font-bold text-lg ml-2">Post Homework</Text>
-            </TouchableOpacity>
+            {/* Added padding for bottom scrolling */}
+            <View className="h-10" />
           </ScrollView>
         )}
       </View>

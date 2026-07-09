@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, FlatList } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Modal, FlatList, Platform } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import DateTimePicker from '@react-native-community/datetimepicker';
 import { BASE_URL, handleApiResponse } from '../../../src/services/api';
 import { useAuthStore } from '../../../src/store/authStore';
 
@@ -18,6 +19,8 @@ export default function CreateAnnouncement() {
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [expiresAt, setExpiresAt] = useState(new Date(Date.now() + 86400000 * 7)); // Default: 7 days
+  const [showDatePicker, setShowDatePicker] = useState(false);
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
   const [selectedStudent, setSelectedStudent] = useState(null);
@@ -92,7 +95,8 @@ export default function CreateAnnouncement() {
         title: title.trim(),
         content: content.trim(),
         target_audience: audience,
-        author_id: user?.id
+        author_id: user?.id,
+        expires_at: expiresAt.toISOString()
       };
 
       const response = await fetch(`${BASE_URL}/api/announcements`, {
@@ -195,6 +199,58 @@ export default function CreateAnnouncement() {
             value={title}
             onChangeText={setTitle}
           />
+        </View>
+
+        <View className="mb-5">
+          <Text className="text-sm font-bold text-gray-800 mb-2">Valid Until</Text>
+          {Platform.OS === 'web' ? (
+            <input
+              type="datetime-local"
+              value={expiresAt instanceof Date && !isNaN(expiresAt) ? expiresAt.toISOString().slice(0, 16) : ''}
+              onChange={(e) => {
+                const newDate = new Date(e.target.value);
+                if (!isNaN(newDate.getTime())) {
+                  setExpiresAt(newDate);
+                }
+              }}
+              style={{
+                backgroundColor: '#F9FAFB',
+                border: '1px solid #E5E7EB',
+                borderRadius: '1rem',
+                padding: '1rem',
+                color: '#111827',
+                fontWeight: '500',
+                fontFamily: 'inherit',
+                fontSize: '16px',
+                width: '100%',
+                boxSizing: 'border-box'
+              }}
+            />
+          ) : (
+            <>
+              <TouchableOpacity
+                onPress={() => setShowDatePicker(true)}
+                className="bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4 flex-row justify-between items-center"
+              >
+                <Text className="text-gray-900 text-base">
+                  {expiresAt.toLocaleString()}
+                </Text>
+                <Ionicons name="calendar-outline" size={20} color="#9CA3AF" />
+              </TouchableOpacity>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={expiresAt}
+                  mode={Platform.OS === 'ios' ? 'datetime' : 'date'}
+                  display="default"
+                  onChange={(event, selectedDate) => {
+                    setShowDatePicker(Platform.OS === 'ios');
+                    setExpiresAt(selectedDate || expiresAt);
+                  }}
+                  minimumDate={new Date()}
+                />
+              )}
+            </>
+          )}
         </View>
 
         <View className="mb-8">

@@ -38,6 +38,99 @@ const getTimetable = async (req, res, next) => {
   }
 };
 
+const getTeacherSchedule = async (req, res, next) => {
+  try {
+    const { teacherId, day_of_week, handlingClasses = [], teacherProfile = {} } = req.body;
+
+    if (!teacherId) {
+      return res.status(400).json({ error: 'teacherId is required' });
+    }
+
+    const classIds = new Set();
+    const uuidRegex = /[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}/g;
+    const extractedUuids = JSON.stringify(handlingClasses).match(uuidRegex) || [];
+    extractedUuids.forEach(id => classIds.add(id));
+
+    const { data: classTeacherData } = await supabase
+      .from('Class')
+      .select('id')
+      .eq('teacher_id', teacherId);
+
+    if (classTeacherData) {
+      classTeacherData.forEach(cls => classIds.add(cls.id));
+    }
+
+    const { data: teacherTimetableData } = await supabase
+      .from('Timetable')
+      .select('class_id')
+      .eq('teacher_id', teacherId);
+
+    if (teacherTimetableData) {
+      teacherTimetableData.forEach(row => classIds.add(row.class_id));
+    }
+
+    if (classIds.size === 0) {
+      return res.json({ data: [], classes: [] });
+    }
+
+    const idsArray = Array.from(classIds);
+
+    const { data: classesData, error: classesError } = await supabase
+      .from('Class')
+      .select('*')
+      .in('id', idsArray);
+
+    if (classesError) {
+      return res.status(500).json({ error: classesError.message });
+    }
+
+    let query = supabase
+      .from('Timetable')
+      .select('*')
+      .in('class_id', idsArray)
+      .order('start_time', { ascending: true })
+      .order('period_number', { ascending: true });
+
+    if (day_of_week) {
+      query = query.eq('day_of_week', day_of_week);
+    }
+
+    const { data: timetableData, error: timetableError } = await query;
+
+    if (timetableError) {
+      return res.status(500).json({ error: timetableError.message });
+    }
+
+    const normalize = value => String(value || '').trim().toLowerCase();
+    const teacherCandidates = new Set([
+      teacherId,
+      teacherProfile.id,
+      teacherProfile.reg_id,
+      teacherProfile.staff_id,
+      teacherProfile.email,
+      teacherProfile.name,
+    ].map(normalize).filter(Boolean));
+
+    const matchingRows = (timetableData || []).filter(row => teacherCandidates.has(normalize(row.teacher_id)));
+    const rowsToUse = matchingRows.length > 0 ? matchingRows : (timetableData || []);
+    const classById = new Map((classesData || []).map(cls => [cls.id, cls]));
+
+    const data = rowsToUse.map(row => {
+      const cls = classById.get(row.class_id);
+      return {
+        ...row,
+        subject: row.subject || row.subject_name,
+        class_name: cls?.name || 'Class',
+        class_section: cls?.section || '',
+      };
+    });
+
+    res.json({ data, classes: classesData || [] });
+  } catch (error) {
+    next(error);
+  }
+};
+
 const uploadTimetable = async (req, res, next) => {
   try {
     const { class_id } = req.body;
@@ -108,4 +201,35 @@ const updateTimetableCell = async (req, res, next) => {
   }
 };
 
-module.exports = { getTimetable, uploadTimetable, updateTimetableCell };
+const getSubjectsByClass = async (req, res, next) => {
+  try {
+    const { class_id } = req.params;
+    
+    if (!class_id) {
+      return res.status(400).json({ error: 'class_id is required' });
+    }
+
+    const { data, error } = await supabase
+      .from('Timetable')
+      .select('subject_name, subject')
+      .eq('class_id', class_id);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    const subjects = new Set();
+    data.forEach(row => {
+      const subj = row.subject_name || row.subject;
+      if (subj && subj.trim() !== '' && subj.toLowerCase() !== 'break' && subj.toLowerCase() !== 'lunch') {
+        subjects.add(subj);
+      }
+    });
+
+    res.json({ subjects: Array.from(subjects) });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { getTimetable, getTeacherSchedule, uploadTimetable, updateTimetableCell, getSubjectsByClass };

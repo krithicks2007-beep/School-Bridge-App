@@ -1,12 +1,63 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { BASE_URL } from '../services/api';
+import { useAuthStore } from '../store/authStore';
+import { countUnreadSince, getExamMarkAlertItems, getLastReadAt } from '../services/readAlerts';
 
 export default function HomeScreen({ onNavigate }) {
   const [logoError, setLogoError] = useState(false);
   const insets = useSafeAreaInsets();
+  const { student } = useAuthStore();
+  const [alertCounts, setAlertCounts] = useState({
+    announcements: 0,
+    homework: 0,
+    testMarks: 0,
+  });
+
+  useEffect(() => {
+    const fetchAlertCounts = async () => {
+      if (!student?.id && !student?.class_id) {
+        setAlertCounts({ announcements: 0, homework: 0, testMarks: 0 });
+        return;
+      }
+
+      try {
+        const studentId = student?.student_id || student?.id;
+        const announcementUrl = `${BASE_URL}/api/announcements?studentId=${student?.id || ''}&classId=${student?.class_id || ''}`;
+        const homeworkUrl = student?.class_id ? `${BASE_URL}/api/homework/class/${student.class_id}` : null;
+        const testMarksUrl = studentId ? `${BASE_URL}/api/marks/parent/${studentId}` : null;
+
+        const [announcementResponse, homeworkResponse, testMarksResponse] = await Promise.all([
+          fetch(announcementUrl),
+          homeworkUrl ? fetch(homeworkUrl) : Promise.resolve(null),
+          testMarksUrl ? fetch(testMarksUrl) : Promise.resolve(null),
+        ]);
+
+        const announcementData = announcementResponse.ok ? await announcementResponse.json() : {};
+        const homeworkData = homeworkResponse?.ok ? await homeworkResponse.json() : {};
+        const testMarksData = testMarksResponse?.ok ? await testMarksResponse.json() : {};
+        const [lastReadAnnouncements, lastReadHomework, lastReadTestMarks] = await Promise.all([
+          getLastReadAt('parent-announcements', student?.id),
+          getLastReadAt('parent-homework', student?.id),
+          getLastReadAt('parent-test-marks', student?.id),
+        ]);
+
+        setAlertCounts({
+          announcements: countUnreadSince(announcementData.announcements, lastReadAnnouncements),
+          homework: countUnreadSince(homeworkData.data, lastReadHomework),
+          testMarks: countUnreadSince(getExamMarkAlertItems(testMarksData.data), lastReadTestMarks),
+        });
+      } catch (error) {
+        console.error('Failed to fetch home alert counts:', error);
+        setAlertCounts({ announcements: 0, homework: 0, testMarks: 0 });
+      }
+    };
+
+    fetchAlertCounts();
+  }, [student?.id, student?.class_id]);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -113,12 +164,12 @@ export default function HomeScreen({ onNavigate }) {
           {renderCard({
             id: 'announcement',
             title: 'Announcement',
-            subtitle: 'Sports day details',
+            subtitle: alertCounts.announcements > 0 ? 'New updates' : 'No new updates',
             iconLib: Ionicons,
             icon: 'megaphone',
             iconColor: '#2563EB',
             gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 1,
+            badgeCount: alertCounts.announcements || undefined,
           })}
           {renderCard({
             id: 'timetable',
@@ -132,13 +183,13 @@ export default function HomeScreen({ onNavigate }) {
           {renderCard({
             id: 'homework',
             title: 'Homework',
-            boldSubtitle: '2',
-            subtitle: 'pending tasks',
+            boldSubtitle: alertCounts.homework > 0 ? String(alertCounts.homework) : undefined,
+            subtitle: alertCounts.homework > 0 ? 'pending tasks' : 'No pending tasks',
             iconLib: Ionicons,
             icon: 'book',
             iconColor: '#2563EB',
             gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 2,
+            badgeCount: alertCounts.homework || undefined,
           })}
           {renderCard({
             id: 'attendance',
@@ -153,12 +204,12 @@ export default function HomeScreen({ onNavigate }) {
           {renderCard({
             id: 'test',
             title: 'Test Mark',
-            subtitle: 'Maths updated',
+            subtitle: alertCounts.testMarks > 0 ? 'New marks posted' : 'No new marks',
             iconLib: Ionicons,
             icon: 'school',
             iconColor: '#2563EB',
             gradient: ['#FFFFFF', '#F0F6FF'],
-            badgeCount: 1,
+            badgeCount: alertCounts.testMarks || undefined,
           })}
           {renderCard({
             id: 'transport',
