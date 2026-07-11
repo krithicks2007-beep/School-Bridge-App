@@ -65,11 +65,13 @@ const upsertTransport = async (req, res, next) => {
     }
 
     // Check if transport record already exists
-    const { data: existing, error: checkError } = await supabase
+    const { data: existingData, error: checkError } = await supabase
       .from('Transport')
       .select('id')
       .eq('student_id', student_id)
-      .maybeSingle();
+      .limit(1);
+
+    const existing = existingData && existingData.length > 0 ? existingData[0] : null;
 
     let result;
 
@@ -124,11 +126,11 @@ const getStudentTransport = async (req, res, next) => {
       .from('Transport')
       .select('*')
       .eq('student_id', student_id)
-      .maybeSingle();
+      .limit(1);
 
     if (error) return res.status(500).json({ error: error.message });
 
-    res.json({ data });
+    res.json({ data: data && data.length > 0 ? data[0] : null });
   } catch (error) {
     next(error);
   }

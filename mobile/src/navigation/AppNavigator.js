@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, BackHandler, Alert } from 'react-native';
+import { View, Text, TouchableOpacity, BackHandler, Alert, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import HomeScreen from '../screens/HomeScreen';
@@ -53,7 +53,7 @@ export default function AppNavigator() {
     return <LoginScreen onLogin={() => setIsLoggedIn(true)} />;
   }
 
-  const bottomPad = insets.bottom > 0 ? insets.bottom : 14;
+  const bottomPad = Math.max(insets.bottom, Platform.OS === 'android' ? 36 : 14);
 
   return (
     <View className="flex-1 bg-school-bg">
