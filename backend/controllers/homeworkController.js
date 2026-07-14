@@ -78,4 +78,60 @@ const getTeacherHomework = async (req, res, next) => {
   }
 };
 
-module.exports = { postHomework, getClassHomework, getTeacherHomework };
+const updateHomework = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { title, description, expires_at } = req.body;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Homework ID is required' });
+    }
+
+    const updateData = {};
+    if (title) updateData.title = title;
+    if (description) updateData.description = description;
+    if (expires_at !== undefined) {
+      updateData.expires_at = expires_at;
+      if (expires_at) updateData.due_date = expires_at;
+    }
+
+    const { data, error } = await supabase
+      .from('Homework')
+      .update(updateData)
+      .eq('id', id)
+      .select();
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ message: 'Homework updated successfully', data: data[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const deleteHomework = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    if (!id) {
+      return res.status(400).json({ error: 'Homework ID is required' });
+    }
+
+    const { error } = await supabase
+      .from('Homework')
+      .delete()
+      .eq('id', id);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ message: 'Homework deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { postHomework, getClassHomework, getTeacherHomework, updateHomework, deleteHomework };

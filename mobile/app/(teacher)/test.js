@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useAuthStore } from '../../src/store/authStore';
-import { BASE_URL } from '../../src/services/api';
+import { BASE_URL , apiFetch} from '../../src/services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Social Studies', 'Tamil', 'Hindi', 'Computer Science', 'Physics', 'Chemistry', 'Biology'];
@@ -14,6 +14,8 @@ export default function TestMarks() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { profile } = useAuthStore();
+
+  const [activeTab, setActiveTab] = useState('create'); // 'create' | 'sent'
 
   const [classes, setClasses] = useState([]);
   const [activeClassId, setActiveClassId] = useState(null);
@@ -32,12 +34,16 @@ export default function TestMarks() {
   const [marksData, setMarksData] = useState({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
+
+  const [sentExams, setSentExams] = useState([]);
+  const [loadingSent, setLoadingSent] = useState(false);
 
   useEffect(() => {
     const fetchClasses = async () => {
       try {
         if (!profile?.id) return;
-        const classesRes = await fetch(`${BASE_URL}/api/attendance/classes/teacher-handled`, {
+        const classesRes = await apiFetch(`${BASE_URL}/api/attendance/classes/teacher-handled`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -64,7 +70,7 @@ export default function TestMarks() {
     const fetchSubjects = async () => {
       if (!activeClassId) return;
       try {
-        const res = await fetch(`${BASE_URL}/api/timetable/subjects/${activeClassId}`);
+        const res = await apiFetch(`${BASE_URL}/api/timetable/subjects/${activeClassId}`);
         if (res.ok) {
           const data = await res.json();
           if (data.subjects && data.subjects.length > 0) {
@@ -82,17 +88,21 @@ export default function TestMarks() {
   }, [activeClassId]);
 
   useEffect(() => {
-    if (activeClassId && examName && subject) {
-      fetchStudentsAndMarks();
-    } else if (activeClassId) {
-      fetchStudentsOnly();
+    if (activeTab === 'create') {
+      if (activeClassId && examName && subject) {
+        fetchStudentsAndMarks();
+      } else if (activeClassId) {
+        fetchStudentsOnly();
+      }
+    } else if (activeTab === 'sent') {
+      fetchSentExams();
     }
-  }, [activeClassId, examName, subject]);
+  }, [activeClassId, examName, subject, activeTab]);
 
   const fetchStudentsOnly = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASE_URL}/api/attendance/students/teacher-handled`, {
+      const res = await apiFetch(`${BASE_URL}/api/attendance/students/teacher-handled`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -120,7 +130,7 @@ export default function TestMarks() {
   const fetchStudentsAndMarks = async () => {
     try {
       setLoading(true);
-      const res = await fetch(`${BASE_URL}/api/marks/teacher?class_id=${activeClassId}&exam_name=${encodeURIComponent(examName)}&subject=${encodeURIComponent(subject)}`);
+      const res = await apiFetch(`${BASE_URL}/api/marks/teacher?class_id=${activeClassId}&exam_name=${encodeURIComponent(examName)}&subject=${encodeURIComponent(subject)}`);
       if (res.ok) {
         const data = await res.json();
         setStudents(data.data || []);
@@ -141,9 +151,29 @@ export default function TestMarks() {
     }
   };
 
+  const fetchSentExams = async () => {
+    if (!activeClassId) return;
+    setLoadingSent(true);
+    try {
+      const res = await apiFetch(`${BASE_URL}/api/marks/teacher/exams?class_id=${activeClassId}`);
+      if (res.ok) {
+        const data = await res.json();
+        setSentExams(data.data || []);
+      }
+    } catch (error) {
+      console.error('Failed to fetch sent exams', error);
+    } finally {
+      setLoadingSent(false);
+    }
+  };
+
   const currentClassName = activeClassId ? classes.find(c => c.id === activeClassId)?.name : 'Select Class';
   const activeClass = classes.find(c => c.id === activeClassId);
   const isClassTeacher = activeClass && activeClass.teacher_id === profile?.id;
+
+  const filteredStudents = students.filter(student => 
+    student.name?.toLowerCase().includes(studentSearchQuery.toLowerCase())
+  );
 
   const handleMarkChange = (studentId, value) => {
     setMarksData(prev => ({ ...prev, [studentId]: value }));
@@ -175,7 +205,7 @@ export default function TestMarks() {
 
     setSaving(true);
     try {
-      const res = await fetch(`${BASE_URL}/api/marks/save`, {
+      const res = await apiFetch(`${BASE_URL}/api/marks/save`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -198,6 +228,36 @@ export default function TestMarks() {
       showAlert('Error', 'An error occurred while saving marks');
     } finally {
       setSaving(false);
+    }
+  };
+
+  const handleDeleteExam = async (exam) => {
+    const executeDelete = async () => {
+      try {
+        const res = await apiFetch(`${BASE_URL}/api/marks/exam?class_id=${activeClassId}&exam_name=${encodeURIComponent(exam.exam_name)}&subject=${encodeURIComponent(exam.subject)}`, {
+          method: 'DELETE'
+        });
+        if (res.ok) {
+          if (Platform.OS === 'web') window.alert('Exam marks deleted successfully.');
+          fetchSentExams(); // Refresh list
+        } else {
+          showAlert('Error', 'Failed to delete exam marks');
+        }
+      } catch (error) {
+        console.error(error);
+        showAlert('Error', 'Failed to delete exam marks');
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      if (window.confirm(`Are you sure you want to delete all marks for ${exam.exam_name} (${exam.subject})?`)) {
+        executeDelete();
+      }
+    } else {
+      Alert.alert('Confirm Delete', `Are you sure you want to delete all marks for ${exam.exam_name} (${exam.subject})?`, [
+        { text: 'Cancel', style: 'cancel' },
+        { text: 'Delete', style: 'destructive', onPress: executeDelete }
+      ]);
     }
   };
 
@@ -262,187 +322,269 @@ export default function TestMarks() {
         </View>
       </View>
 
+      <View className="flex-row mt-4 px-5 justify-between">
+        <TouchableOpacity 
+          className={`flex-1 py-3 rounded-l-xl border ${activeTab === 'create' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-200'}`}
+          onPress={() => setActiveTab('create')}
+        >
+          <Text className={`text-center font-bold ${activeTab === 'create' ? 'text-white' : 'text-gray-500'}`}>Enter Marks</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          className={`flex-1 py-3 rounded-r-xl border ${activeTab === 'sent' ? 'bg-indigo-600 border-indigo-600' : 'bg-white border-gray-200'}`}
+          onPress={() => setActiveTab('sent')}
+        >
+          <Text className={`text-center font-bold ${activeTab === 'sent' ? 'text-white' : 'text-gray-500'}`}>Recently Entered</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* Main Content */}
       <View className="flex-1 px-5 pt-6 z-10">
-        {loading && students.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
-            <ActivityIndicator size="large" color="#4F46E5" />
-          </View>
-        ) : classes.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
-            <Ionicons name="school-outline" size={64} color="#E5E7EB" />
-            <Text className="mt-4 text-gray-500 font-medium text-center px-6">
-              You haven't been assigned any classes yet.
-            </Text>
-          </View>
-        ) : (
-          <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
-            {/* Subject & Test Info */}
-            <View className="bg-gray-50 rounded-2xl p-4 border border-gray-100 mb-5 relative z-20">
-              
-              <Text className="text-sm font-semibold text-gray-700 mb-1.5">Test Name (e.g. Mid-Term Exam)</Text>
-              <TextInput
-                value={examName}
-                onChangeText={setExamName}
-                placeholder="Enter Test Name"
-                className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 text-gray-800 font-medium"
-              />
+        {activeTab === 'create' ? (
+          loading && students.length === 0 ? (
+            <View className="flex-1 justify-center items-center">
+              <ActivityIndicator size="large" color="#4F46E5" />
+            </View>
+          ) : classes.length === 0 ? (
+            <View className="flex-1 justify-center items-center">
+              <Ionicons name="school-outline" size={64} color="#E5E7EB" />
+              <Text className="mt-4 text-gray-500 font-medium text-center px-6">
+                You haven't been assigned any classes yet.
+              </Text>
+            </View>
+          ) : (
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 100 }}>
+              {/* Subject & Test Info */}
+              <View className="bg-gray-50 rounded-2xl p-4 border border-gray-100 mb-5 relative z-20">
+                
+                <Text className="text-sm font-semibold text-gray-700 mb-1.5">Test Name (e.g. Mid-Term Exam)</Text>
+                <TextInput
+                  value={examName}
+                  onChangeText={setExamName}
+                  placeholder="Enter Test Name"
+                  className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 text-gray-800 font-medium"
+                />
 
-              <Text className="text-sm font-semibold text-gray-700 mb-1.5">Subject</Text>
-              {isClassTeacher ? (
-                <>
-                  <TouchableOpacity 
-                    onPress={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
-                    className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 justify-between"
-                  >
-                    <View className="flex-row items-center">
-                      <Ionicons name="book-outline" size={20} color="#6B7280" />
-                      <Text className="ml-3 text-gray-700 font-medium">{subject}</Text>
-                    </View>
-                    <Ionicons name={subjectDropdownOpen ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
-                  </TouchableOpacity>
-                  
-                  <Modal visible={subjectDropdownOpen} transparent animationType="none" onRequestClose={() => setSubjectDropdownOpen(false)}>
-                    <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setSubjectDropdownOpen(false)}>
-                      <View style={{ position: 'absolute', top: 320, left: 40, right: 40, backgroundColor: 'white', borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 10, borderWidth: 1, borderColor: '#F1F5F9', maxHeight: 200 }}>
-                        <ScrollView nestedScrollEnabled bounces={false}>
-                          {subjectsList.map(sub => (
-                            <TouchableOpacity
-                              key={sub}
-                              style={{ paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F8FAFC', backgroundColor: subject === sub ? '#EEF2FF' : 'white' }}
-                              onPress={() => {
-                                setSubject(sub);
-                                setSubjectDropdownOpen(false);
-                              }}
-                            >
-                              <Text style={{ fontWeight: '600', color: subject === sub ? '#4F46E5' : '#475569' }}>
-                                {sub}
-                              </Text>
-                            </TouchableOpacity>
-                          ))}
-                        </ScrollView>
+                <Text className="text-sm font-semibold text-gray-700 mb-1.5">Subject</Text>
+                {isClassTeacher ? (
+                  <>
+                    <TouchableOpacity 
+                      onPress={() => setSubjectDropdownOpen(!subjectDropdownOpen)}
+                      className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 mb-4 justify-between"
+                    >
+                      <View className="flex-row items-center">
+                        <Ionicons name="book-outline" size={20} color="#6B7280" />
+                        <Text className="ml-3 text-gray-700 font-medium">{subject}</Text>
                       </View>
+                      <Ionicons name={subjectDropdownOpen ? "chevron-up" : "chevron-down"} size={20} color="#64748B" />
                     </TouchableOpacity>
-                  </Modal>
-                </>
-              ) : (
-                <View className="flex-row items-center bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 mb-4 opacity-70">
-                  <Ionicons name="book-outline" size={20} color="#6B7280" />
-                  <Text className="ml-3 text-gray-700 font-medium">{profile?.subject || 'General'}</Text>
+                    
+                    <Modal visible={subjectDropdownOpen} transparent animationType="none" onRequestClose={() => setSubjectDropdownOpen(false)}>
+                      <TouchableOpacity style={{ flex: 1 }} activeOpacity={1} onPress={() => setSubjectDropdownOpen(false)}>
+                        <View style={{ position: 'absolute', top: 320, left: 40, right: 40, backgroundColor: 'white', borderRadius: 12, shadowColor: '#000', shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.15, shadowRadius: 8, elevation: 10, borderWidth: 1, borderColor: '#F1F5F9', maxHeight: 200 }}>
+                          <ScrollView nestedScrollEnabled bounces={false}>
+                            {subjectsList.map(sub => (
+                              <TouchableOpacity
+                                key={sub}
+                                style={{ paddingHorizontal: 16, paddingVertical: 14, borderBottomWidth: 1, borderBottomColor: '#F8FAFC', backgroundColor: subject === sub ? '#EEF2FF' : 'white' }}
+                                onPress={() => {
+                                  setSubject(sub);
+                                  setSubjectDropdownOpen(false);
+                                }}
+                              >
+                                <Text style={{ fontWeight: '600', color: subject === sub ? '#4F46E5' : '#475569' }}>
+                                  {sub}
+                                </Text>
+                              </TouchableOpacity>
+                            ))}
+                          </ScrollView>
+                        </View>
+                      </TouchableOpacity>
+                    </Modal>
+                  </>
+                ) : (
+                  <View className="flex-row items-center bg-gray-100 border border-gray-200 rounded-xl px-4 py-3 mb-4 opacity-70">
+                    <Ionicons name="book-outline" size={20} color="#6B7280" />
+                    <Text className="ml-3 text-gray-700 font-medium">{profile?.subject || 'General'}</Text>
+                  </View>
+                )}
+
+                <View className="flex-row space-x-3">
+                  <View className="flex-1">
+                    <Text className="text-sm font-semibold text-gray-700 mb-1.5">Max Marks</Text>
+                    <TextInput
+                      value={maxMarks}
+                      onChangeText={setMaxMarks}
+                      placeholder="100"
+                      keyboardType="numeric"
+                      className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 text-gray-800 font-medium"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text className="text-sm font-semibold text-gray-700 mb-1.5">Date</Text>
+                    {Platform.OS === 'web' ? (
+                      <View className="bg-white border border-gray-200 rounded-xl px-4 py-[9px] shadow-sm shadow-gray-200/50">
+                        {React.createElement('input', {
+                          type: 'date',
+                          value: date.toISOString().split('T')[0],
+                          onChange: (e) => {
+                            const d = new Date(e.target.value);
+                            if (!isNaN(d.getTime())) setDate(d);
+                          },
+                          style: { border: 'none', outline: 'none', background: 'transparent', width: '100%', color: '#374151', fontFamily: 'inherit', fontSize: '14px', padding: '2px 0' }
+                        })}
+                      </View>
+                    ) : (
+                      <>
+                        <TouchableOpacity onPress={() => setShowDatePicker(true)} className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50">
+                          <Ionicons name="calendar-outline" size={16} color="#6B7280" />
+                          <Text className="ml-2 text-gray-700 font-medium text-sm">{date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
+                        </TouchableOpacity>
+                        
+                        {showDatePicker && (
+                          <DateTimePicker
+                            value={date}
+                            mode="date"
+                            display="calendar"
+                            onChange={(event, selectedDate) => {
+                              setShowDatePicker(Platform.OS === 'ios');
+                              if (selectedDate) setDate(selectedDate);
+                            }}
+                          />
+                        )}
+                      </>
+                    )}
+                  </View>
+                </View>
+              </View>
+
+              {/* Students Marks Entry */}
+              <Text className="text-xs font-bold text-gray-400 mb-3 tracking-wider uppercase">
+                {currentClassName} — {students.length} STUDENTS
+              </Text>
+
+              {/* Student Search Bar */}
+              {students.length > 0 && (
+                <View className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-2 mb-4 shadow-sm">
+                  <Ionicons name="search" size={20} color="#9CA3AF" />
+                  <TextInput
+                    className="flex-1 ml-3 text-base text-gray-800 py-1"
+                    placeholder="Search students by name..."
+                    placeholderTextColor="#9CA3AF"
+                    value={studentSearchQuery}
+                    onChangeText={setStudentSearchQuery}
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                  />
+                  {studentSearchQuery.length > 0 && (
+                    <TouchableOpacity onPress={() => setStudentSearchQuery('')}>
+                      <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                    </TouchableOpacity>
+                  )}
                 </View>
               )}
 
-              <View className="flex-row space-x-3">
-                <View className="flex-1">
-                  <Text className="text-sm font-semibold text-gray-700 mb-1.5">Max Marks</Text>
-                  <TextInput
-                    value={maxMarks}
-                    onChangeText={setMaxMarks}
-                    placeholder="100"
-                    keyboardType="numeric"
-                    className="bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50 text-gray-800 font-medium"
-                  />
+              {filteredStudents.length === 0 ? (
+                <View className="py-10 items-center">
+                  <Text className="text-gray-400 font-medium">No students found.</Text>
                 </View>
-                <View className="flex-1">
-                  <Text className="text-sm font-semibold text-gray-700 mb-1.5">Date</Text>
-                  {Platform.OS === 'web' ? (
-                    <View className="bg-white border border-gray-200 rounded-xl px-4 py-[9px] shadow-sm shadow-gray-200/50">
-                      {React.createElement('input', {
-                        type: 'date',
-                        value: date.toISOString().split('T')[0],
-                        onChange: (e) => {
-                          const d = new Date(e.target.value);
-                          if (!isNaN(d.getTime())) setDate(d);
-                        },
-                        style: { border: 'none', outline: 'none', background: 'transparent', width: '100%', color: '#374151', fontFamily: 'inherit', fontSize: '14px', padding: '2px 0' }
-                      })}
+              ) : (
+                filteredStudents.map((student, index) => (
+                  <View key={student.id} className="flex-row items-center bg-white p-3 mb-3 rounded-2xl border border-gray-100 shadow-sm shadow-gray-200/50">
+                    {/* Avatar */}
+                    {student.photo_url ? (
+                      <Image
+                        source={{ uri: student.photo_url }}
+                        style={{ width: 48, height: 48, borderRadius: 24, marginRight: 12 }}
+                      />
+                    ) : (
+                      <View className="w-12 h-12 rounded-full bg-indigo-100 items-center justify-center mr-3">
+                        <Text className="text-indigo-700 font-bold text-base">{getInitials(student.name)}</Text>
+                      </View>
+                    )}
+
+                    {/* Info */}
+                    <View className="flex-1 justify-center">
+                      <Text className="font-bold text-gray-800 text-[15px] mb-0.5">{student.name}</Text>
+                      <Text className="text-gray-400 text-xs font-medium">Roll No. {index + 1}</Text>
                     </View>
+
+                    {/* Score Input */}
+                    <View className="w-20">
+                      <TextInput
+                        value={marksData[student.id] || ''}
+                        onChangeText={(val) => handleMarkChange(student.id, val)}
+                        placeholder="—"
+                        keyboardType="numeric"
+                        className="text-center bg-indigo-50 border border-indigo-200 rounded-xl py-2.5 text-indigo-800 font-black text-base"
+                      />
+                    </View>
+                  </View>
+                ))
+              )}
+
+              {/* Submit Button */}
+              {students.length > 0 && (
+                <TouchableOpacity 
+                  onPress={submitMarks}
+                  disabled={saving}
+                  className={`w-full ${saving ? 'bg-indigo-400' : 'bg-indigo-600'} py-4 rounded-2xl shadow-lg shadow-indigo-600/40 items-center flex-row justify-center mt-4`}
+                >
+                  {saving ? (
+                    <ActivityIndicator color="white" />
                   ) : (
                     <>
-                      <TouchableOpacity onPress={() => setShowDatePicker(true)} className="flex-row items-center bg-white border border-gray-200 rounded-xl px-4 py-3 shadow-sm shadow-gray-200/50">
-                        <Ionicons name="calendar-outline" size={16} color="#6B7280" />
-                        <Text className="ml-2 text-gray-700 font-medium text-sm">{date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' })}</Text>
-                      </TouchableOpacity>
-                      
-                      {showDatePicker && (
-                        <DateTimePicker
-                          value={date}
-                          mode="date"
-                          display="calendar"
-                          onChange={(event, selectedDate) => {
-                            setShowDatePicker(Platform.OS === 'ios');
-                            if (selectedDate) setDate(selectedDate);
-                          }}
-                        />
-                      )}
+                      <Ionicons name="checkmark-circle" size={20} color="white" />
+                      <Text className="text-white font-bold text-lg ml-2">Save Marks</Text>
                     </>
                   )}
-                </View>
-              </View>
-            </View>
-
-            {/* Students Marks Entry */}
-            <Text className="text-xs font-bold text-gray-400 mb-3 tracking-wider uppercase">
-              {currentClassName} — {students.length} STUDENTS
-            </Text>
-
-            {students.length === 0 ? (
-              <View className="py-10 items-center">
-                <Text className="text-gray-400 font-medium">No students found in this class.</Text>
+                </TouchableOpacity>
+              )}
+            </ScrollView>
+          )
+        ) : (
+          <View className="flex-1">
+            {loadingSent ? (
+              <ActivityIndicator size="large" color="#4F46E5" className="mt-10" />
+            ) : sentExams.length === 0 ? (
+              <View className="flex-1 justify-center items-center">
+                <Ionicons name="document-text-outline" size={64} color="#E5E7EB" />
+                <Text className="mt-4 text-gray-500 font-medium text-center px-6">
+                  You haven't entered any test marks for this class yet.
+                </Text>
               </View>
             ) : (
-              students.map((student, index) => (
-                <View key={student.id} className="flex-row items-center bg-white p-3 mb-3 rounded-2xl border border-gray-100 shadow-sm shadow-gray-200/50">
-                  {/* Avatar */}
-                  {student.photo_url ? (
-                    <Image
-                      source={{ uri: student.photo_url }}
-                      style={{ width: 48, height: 48, borderRadius: 24, marginRight: 12 }}
-                    />
-                  ) : (
-                    <View className="w-12 h-12 rounded-full bg-indigo-100 items-center justify-center mr-3">
-                      <Text className="text-indigo-700 font-bold text-base">{getInitials(student.name)}</Text>
+              <ScrollView showsVerticalScrollIndicator={false}>
+                {sentExams.map((exam, index) => (
+                  <View key={index} className="bg-white p-4 mb-4 rounded-2xl border border-gray-100 shadow-sm flex-row items-center justify-between">
+                    <View className="flex-1 pr-4">
+                      <Text className="font-bold text-lg text-gray-800">{exam.exam_name}</Text>
+                      <Text className="text-gray-600 font-medium mb-1">{exam.subject}</Text>
+                      <Text className="text-xs text-gray-400">Date: {new Date(exam.date).toLocaleDateString()}</Text>
                     </View>
-                  )}
-
-                  {/* Info */}
-                  <View className="flex-1 justify-center">
-                    <Text className="font-bold text-gray-800 text-[15px] mb-0.5">{student.name}</Text>
-                    <Text className="text-gray-400 text-xs font-medium">Roll No. {index + 1}</Text>
+                    <View className="flex-row items-center space-x-2">
+                      <TouchableOpacity 
+                        onPress={() => {
+                          setExamName(exam.exam_name);
+                          setSubject(exam.subject);
+                          setActiveTab('create');
+                        }}
+                        className="bg-indigo-50 p-2 rounded-full mr-2"
+                      >
+                        <Ionicons name="pencil" size={20} color="#4F46E5" />
+                      </TouchableOpacity>
+                      <TouchableOpacity 
+                        onPress={() => handleDeleteExam(exam)}
+                        className="bg-rose-50 p-2 rounded-full"
+                      >
+                        <Ionicons name="trash" size={20} color="#EF4444" />
+                      </TouchableOpacity>
+                    </View>
                   </View>
-
-                  {/* Score Input */}
-                  <View className="w-20">
-                    <TextInput
-                      value={marksData[student.id] || ''}
-                      onChangeText={(val) => handleMarkChange(student.id, val)}
-                      placeholder="—"
-                      keyboardType="numeric"
-                      className="text-center bg-indigo-50 border border-indigo-200 rounded-xl py-2.5 text-indigo-800 font-black text-base"
-                    />
-                  </View>
-                </View>
-              ))
+                ))}
+                <View className="h-10" />
+              </ScrollView>
             )}
-
-            {/* Submit Button */}
-            {students.length > 0 && (
-              <TouchableOpacity 
-                onPress={submitMarks}
-                disabled={saving}
-                className={`w-full ${saving ? 'bg-indigo-400' : 'bg-indigo-600'} py-4 rounded-2xl shadow-lg shadow-indigo-600/40 items-center flex-row justify-center mt-4`}
-              >
-                {saving ? (
-                  <ActivityIndicator color="white" />
-                ) : (
-                  <>
-                    <Ionicons name="checkmark-circle" size={20} color="white" />
-                    <Text className="text-white font-bold text-lg ml-2">Save Marks</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            )}
-          </ScrollView>
+          </View>
         )}
       </View>
     </View>

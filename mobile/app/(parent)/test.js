@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
-import { BASE_URL } from '../../src/services/api';
+import { BASE_URL , apiFetch} from '../../src/services/api';
 import { markReadNow } from '../../src/services/readAlerts';
 
 export default function TestMarkScreen() {
@@ -25,7 +25,7 @@ export default function TestMarkScreen() {
         // Fetch dynamic subjects if class_id is available
         if (student?.class_id) {
           try {
-            const subjRes = await fetch(`${BASE_URL}/api/timetable/subjects/${student.class_id}`);
+            const subjRes = await apiFetch(`${BASE_URL}/api/timetable/subjects/${student.class_id}`);
             if (subjRes.ok) {
               const subjData = await subjRes.json();
               if (subjData.subjects && subjData.subjects.length > 0) {
@@ -37,7 +37,7 @@ export default function TestMarkScreen() {
           }
         }
 
-        const res = await fetch(`${BASE_URL}/api/marks/parent/${studentId}`);
+        const res = await apiFetch(`${BASE_URL}/api/marks/parent/${studentId}`);
         const data = await res.json();
         
         if (data.data) {

@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
-import { BASE_URL } from '../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../src/services/api';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Social Studies', 'Tamil', 'Hindi', 'Computer Science', 'Physics', 'Chemistry', 'Biology', 'Other'];
 
@@ -53,7 +53,7 @@ export default function AddTeacher() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/classes`);
+      const response = await apiFetch(`${BASE_URL}/api/classes`);
       const result = await response.json();
       if (result.data) {
         setClasses(result.data);
@@ -113,7 +113,7 @@ export default function AddTeacher() {
         handling_classes: formData.handling_classes
       };
 
-      const response = await fetch(`${BASE_URL}/api/teachers/add`, {
+      const response = await apiFetch(`${BASE_URL}/api/teachers/add`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

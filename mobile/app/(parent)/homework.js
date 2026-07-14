@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BASE_URL } from '../../src/services/api';
+import { BASE_URL , apiFetch} from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
 import { markReadNow } from '../../src/services/readAlerts';
 
@@ -24,7 +24,7 @@ export default function HomeworkScreen() {
           return;
         }
 
-        const response = await fetch(`${BASE_URL}/api/homework/class/${student.class_id}`);
+        const response = await apiFetch(`${BASE_URL}/api/homework/class/${student.class_id}`);
         const result = await response.json();
 
         if (!response.ok) {

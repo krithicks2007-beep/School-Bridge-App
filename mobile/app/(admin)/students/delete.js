@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Alert, Flat
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BASE_URL } from '../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../src/services/api';
 
 export default function DeleteStudent() {
   const router = useRouter();
@@ -26,7 +26,7 @@ export default function DeleteStudent() {
         ? `${BASE_URL}/api/students?q=${encodeURIComponent(query)}`
         : `${BASE_URL}/api/students`;
         
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       const result = await response.json();
       if (result.data) {
         setStudents(result.data);
@@ -70,7 +70,7 @@ export default function DeleteStudent() {
   const handleDelete = async (id) => {
     setDeletingId(id);
     try {
-      const response = await fetch(`${BASE_URL}/api/students/${id}`, {
+      const response = await apiFetch(`${BASE_URL}/api/students/${id}`, {
         method: 'DELETE',
       });
       const result = await response.json();

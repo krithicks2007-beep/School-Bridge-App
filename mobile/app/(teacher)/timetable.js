@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BASE_URL, handleApiResponse } from '../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -65,7 +65,7 @@ export default function TeacherTimetableScreen() {
     setError(null);
 
     try {
-      const response = await fetch(`${BASE_URL}/api/timetable/teacher-schedule`, {
+      const response = await apiFetch(`${BASE_URL}/api/timetable/teacher-schedule`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -79,27 +79,12 @@ export default function TeacherTimetableScreen() {
       const schedulePeriods = result.data || [];
 
       if (schedulePeriods.length > 0) {
-        schedulePeriods.push(
-          {
-            id: 'break_short',
-            is_break: true,
-            break_label: 'Short Break',
-            start_time: '10:30:00',
-            end_time: '10:45:00',
-            period_number: 2.5,
-          },
-          {
-            id: 'break_lunch',
-            is_break: true,
-            break_label: 'Lunch Break',
-            start_time: '12:15:00',
-            end_time: '13:00:00',
-            period_number: 4.5,
-          }
-        );
+        schedulePeriods.sort((a, b) => {
+          if (!a.start_time) return 1;
+          if (!b.start_time) return -1;
+          return String(a.start_time).localeCompare(String(b.start_time));
+        });
       }
-
-      schedulePeriods.sort((a, b) => Number(a.period_number) - Number(b.period_number));
       setClasses(result.classes || []);
       setPeriods(schedulePeriods);
     } catch (err) {

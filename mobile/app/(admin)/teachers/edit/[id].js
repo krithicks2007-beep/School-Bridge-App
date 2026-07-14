@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
-import { BASE_URL } from '../../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../../src/services/api';
 
 const SUBJECTS = ['Mathematics', 'Science', 'English', 'Social Studies', 'Tamil', 'Hindi', 'Computer Science', 'Physics', 'Chemistry', 'Biology', 'Other'];
 
@@ -57,7 +57,7 @@ export default function EditTeacher() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/classes`);
+      const response = await apiFetch(`${BASE_URL}/api/classes`);
       const result = await response.json();
       if (result.data) {
         setClasses(result.data);
@@ -71,7 +71,7 @@ export default function EditTeacher() {
 
   const fetchTeacher = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/teachers/${reg_id}`);
+      const response = await apiFetch(`${BASE_URL}/api/teachers/${reg_id}`);
       const result = await response.json();
       if (response.ok && result.data) {
         setTeacherId(result.data.id);
@@ -151,7 +151,7 @@ export default function EditTeacher() {
         handling_classes: formData.handling_classes
       };
 
-      const response = await fetch(`${BASE_URL}/api/teachers/update/${teacherId}`, {
+      const response = await apiFetch(`${BASE_URL}/api/teachers/update/${teacherId}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

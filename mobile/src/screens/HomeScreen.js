@@ -3,7 +3,7 @@ import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'reac
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { BASE_URL } from '../services/api';
+import { BASE_URL , apiFetch} from '../services/api';
 import { useAuthStore } from '../store/authStore';
 import { countUnreadSince, getExamMarkAlertItems, getLastReadAt } from '../services/readAlerts';
 
@@ -31,9 +31,9 @@ export default function HomeScreen({ onNavigate }) {
         const testMarksUrl = studentId ? `${BASE_URL}/api/marks/parent/${studentId}` : null;
 
         const [announcementResponse, homeworkResponse, testMarksResponse] = await Promise.all([
-          fetch(announcementUrl),
-          homeworkUrl ? fetch(homeworkUrl) : Promise.resolve(null),
-          testMarksUrl ? fetch(testMarksUrl) : Promise.resolve(null),
+          apiFetch(announcementUrl),
+          homeworkUrl ? apiFetch(homeworkUrl) : Promise.resolve(null),
+          testMarksUrl ? apiFetch(testMarksUrl) : Promise.resolve(null),
         ]);
 
         const announcementData = announcementResponse.ok ? await announcementResponse.json() : {};

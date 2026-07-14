@@ -1,19 +1,22 @@
 import React, { useCallback, useState } from 'react';
-import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { BASE_URL } from '../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../src/services/api';
 import { countUnreadSince, getLastReadAt } from '../../../src/services/readAlerts';
 
 export default function TeacherHome() {
   const [logoError, setLogoError] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { user, profile, logoutUser } = useAuthStore();
   const router = useRouter();
   const [announcementCount, setAnnouncementCount] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Use name from the User table profile row, fallback to email prefix
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Teacher';
@@ -23,14 +26,29 @@ export default function TeacherHome() {
   useFocusEffect(
     useCallback(() => {
       const fetchAnnouncementCount = async () => {
+        const cacheKey = `teacher-dashboard-announcements-${profile?.id || user?.id || user?.email}`;
+        
         try {
-          const response = await fetch(`${BASE_URL}/api/announcements`);
+          const cachedData = await AsyncStorage.getItem(cacheKey);
+          if (cachedData) {
+            setAnnouncementCount(Number(cachedData));
+            setIsLoading(false);
+          }
+
+          const response = await apiFetch(`${BASE_URL}/api/announcements`);
           const data = response.ok ? await response.json() : {};
           const lastReadAnnouncements = await getLastReadAt('staff-announcements', profile?.id || user?.id || user?.email);
-          setAnnouncementCount(countUnreadSince(data.announcements, lastReadAnnouncements));
+          const newCount = countUnreadSince(data.announcements, lastReadAnnouncements);
+          
+          setAnnouncementCount(newCount);
+          await AsyncStorage.setItem(cacheKey, String(newCount));
         } catch (error) {
           console.error('Failed to fetch staff home announcement count:', error);
-          setAnnouncementCount(0);
+          if (isLoading) {
+            setAnnouncementCount(0);
+          }
+        } finally {
+          setIsLoading(false);
         }
       };
 
@@ -136,23 +154,62 @@ export default function TeacherHome() {
           >
             <View className="flex-1 pr-3">
               <Text className="mb-0.5 text-sm font-medium text-white/85">{getGreeting()}</Text>
-              <Text className="mb-2.5 text-[26px] font-black leading-8 text-white" numberOfLines={2}>{displayName}</Text>
+              <View className="flex-row items-center">
+                <Text className="mb-2.5 text-[26px] font-black leading-8 text-white mr-2" numberOfLines={2}>{displayName}</Text>
+                {isLoading && <ActivityIndicator size="small" color="#ffffff" />}
+              </View>
               <Text className="text-xs font-medium text-white/70">{classLabel}</Text>
             </View>
 
-            {profile?.photo_url ? (
-              <Image
-                source={{ uri: profile.photo_url }}
-                style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#fff' }}
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-indigo-400 shadow-md">
-                <Text className="text-[22px] font-black text-white">{displayName.charAt(0)}</Text>
-              </View>
-            )}
+            <TouchableOpacity activeOpacity={0.8} onPress={() => setProfileModalVisible(true)}>
+              {profile?.photo_url ? (
+                <Image
+                  source={{ uri: profile.photo_url }}
+                  style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#fff' }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-indigo-400 shadow-md">
+                  <Text className="text-[22px] font-black text-white">{displayName.charAt(0)}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </LinearGradient>
         </View>
+
+        <Modal visible={profileModalVisible} transparent animationType="fade" onRequestClose={() => setProfileModalVisible(false)}>
+          <TouchableOpacity 
+            activeOpacity={1} 
+            className="flex-1 bg-black/60 items-center justify-center px-6" 
+            onPress={() => setProfileModalVisible(false)}
+          >
+            <TouchableOpacity activeOpacity={1}>
+              <View className="bg-white w-full rounded-[24px] overflow-hidden items-center p-6 shadow-2xl">
+                {profile?.photo_url ? (
+                  <Image 
+                    source={{ uri: profile.photo_url }} 
+                    className="h-32 w-32 rounded-full border-4 border-indigo-100 mb-4"
+                  />
+                ) : (
+                  <View className="h-32 w-32 rounded-full bg-indigo-400 items-center justify-center border-4 border-indigo-100 mb-4">
+                    <Text className="text-5xl font-black text-white">{displayName.charAt(0)}</Text>
+                  </View>
+                )}
+                <Text className="text-2xl font-black text-gray-900 mb-1 text-center">{displayName}</Text>
+                {profile?.handling_classes && profile.handling_classes.length > 0 && (
+                  <Text className="text-sm font-bold text-gray-700 mb-1">Class Teacher: {profile.handling_classes.join(', ')}</Text>
+                )}
+                <Text className="text-sm font-medium text-indigo-600 mb-4">{classLabel}</Text>
+                <TouchableOpacity 
+                  className="bg-gray-100 w-full py-3 rounded-xl items-center" 
+                  onPress={() => setProfileModalVisible(false)}
+                >
+                  <Text className="font-bold text-gray-700">Close</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
 
         <View className="w-full flex-row flex-wrap justify-between">
           {renderCard({

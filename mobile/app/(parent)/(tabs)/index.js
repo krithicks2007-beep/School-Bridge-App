@@ -1,15 +1,17 @@
 import React, { useCallback, useState } from 'react';
-import { Image, ScrollView, StatusBar, Text, TouchableOpacity, View } from 'react-native';
+import { Image, Modal, ScrollView, StatusBar, Text, TouchableOpacity, TouchableWithoutFeedback, View, ActivityIndicator } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { useAuthStore } from '../../../src/store/authStore';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { BASE_URL } from '../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../src/services/api';
 import { countUnreadSince, getExamMarkAlertItems, getLastReadAt } from '../../../src/services/readAlerts';
 
 export default function ParentHome() {
   const [logoError, setLogoError] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { student, logoutUser } = useAuthStore();
   const router = useRouter();
@@ -18,6 +20,7 @@ export default function ParentHome() {
     homework: 0,
     testMarks: 0,
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   const studentName = student?.name || 'Student';
 
@@ -26,19 +29,28 @@ export default function ParentHome() {
       const fetchAlertCounts = async () => {
         if (!student?.id && !student?.class_id) {
           setAlertCounts({ announcements: 0, homework: 0, testMarks: 0 });
+          setIsLoading(false);
           return;
         }
 
+        const cacheKey = `parent-dashboard-alerts-${student.id}`;
+
         try {
+          const cachedData = await AsyncStorage.getItem(cacheKey);
+          if (cachedData) {
+            setAlertCounts(JSON.parse(cachedData));
+            setIsLoading(false);
+          }
+
           const studentId = student?.student_id || student?.id;
           const announcementUrl = `${BASE_URL}/api/announcements?studentId=${student?.id || ''}&classId=${student?.class_id || ''}`;
           const homeworkUrl = student?.class_id ? `${BASE_URL}/api/homework/class/${student.class_id}` : null;
           const testMarksUrl = studentId ? `${BASE_URL}/api/marks/parent/${studentId}` : null;
 
           const [announcementResponse, homeworkResponse, testMarksResponse] = await Promise.all([
-            fetch(announcementUrl),
-            homeworkUrl ? fetch(homeworkUrl) : Promise.resolve(null),
-            testMarksUrl ? fetch(testMarksUrl) : Promise.resolve(null),
+            apiFetch(announcementUrl),
+            homeworkUrl ? apiFetch(homeworkUrl) : Promise.resolve(null),
+            testMarksUrl ? apiFetch(testMarksUrl) : Promise.resolve(null),
           ]);
 
           const announcementData = announcementResponse.ok ? await announcementResponse.json() : {};
@@ -50,14 +62,21 @@ export default function ParentHome() {
             getLastReadAt('parent-test-marks', student?.id),
           ]);
 
-          setAlertCounts({
+          const newAlertCounts = {
             announcements: countUnreadSince(announcementData.announcements, lastReadAnnouncements),
             homework: countUnreadSince(homeworkData.data, lastReadHomework),
             testMarks: countUnreadSince(getExamMarkAlertItems(testMarksData.data), lastReadTestMarks),
-          });
+          };
+
+          setAlertCounts(newAlertCounts);
+          await AsyncStorage.setItem(cacheKey, JSON.stringify(newAlertCounts));
         } catch (error) {
           console.error('Failed to fetch parent home alert counts:', error);
-          setAlertCounts({ announcements: 0, homework: 0, testMarks: 0 });
+          if (isLoading) {
+            setAlertCounts({ announcements: 0, homework: 0, testMarks: 0 });
+          }
+        } finally {
+          setIsLoading(false);
         }
       };
 
@@ -155,23 +174,59 @@ export default function ParentHome() {
           >
             <View className="flex-1 pr-3">
               <Text className="mb-0.5 text-sm font-medium text-white/85">{getGreeting()}</Text>
-              <Text className="mb-2.5 text-[26px] font-black leading-8 text-white" numberOfLines={2}>{studentName}</Text>
+              <View className="flex-row items-center">
+                <Text className="mb-2.5 text-[26px] font-black leading-8 text-white mr-2" numberOfLines={2}>{studentName}</Text>
+                {isLoading && <ActivityIndicator size="small" color="#ffffff" />}
+              </View>
               <Text className="text-xs font-medium text-white/70">{student?.grade || ''}</Text>
             </View>
 
-            {student?.photo_url ? (
-              <Image
-                source={{ uri: student.photo_url }}
-                style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#fff' }}
-                resizeMode="cover"
-              />
-            ) : (
-              <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-blue-400 shadow-md">
-                <Text className="text-[22px] font-black text-white">{studentName.charAt(0)}</Text>
-              </View>
-            )}
+            <TouchableOpacity activeOpacity={0.8} onPress={() => setProfileModalVisible(true)}>
+              {student?.photo_url ? (
+                <Image
+                  source={{ uri: student.photo_url }}
+                  style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#fff' }}
+                  resizeMode="cover"
+                />
+              ) : (
+                <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-blue-400 shadow-md">
+                  <Text className="text-[22px] font-black text-white">{studentName.charAt(0)}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </LinearGradient>
         </View>
+
+        <Modal visible={profileModalVisible} transparent animationType="fade" onRequestClose={() => setProfileModalVisible(false)}>
+          <TouchableOpacity 
+            activeOpacity={1} 
+            className="flex-1 bg-black/60 items-center justify-center px-6" 
+            onPress={() => setProfileModalVisible(false)}
+          >
+            <TouchableOpacity activeOpacity={1}>
+              <View className="bg-white w-full rounded-[24px] overflow-hidden items-center p-6 shadow-2xl">
+                {student?.photo_url ? (
+                  <Image 
+                    source={{ uri: student.photo_url }} 
+                    className="h-32 w-32 rounded-full border-4 border-blue-100 mb-4"
+                  />
+                ) : (
+                  <View className="h-32 w-32 rounded-full bg-blue-400 items-center justify-center border-4 border-blue-100 mb-4">
+                    <Text className="text-5xl font-black text-white">{studentName.charAt(0)}</Text>
+                  </View>
+                )}
+                <Text className="text-2xl font-black text-gray-900 mb-1 text-center">{studentName}</Text>
+                <Text className="text-sm font-medium text-blue-600 mb-4">Grade {student?.grade || ''}</Text>
+                <TouchableOpacity 
+                  className="bg-gray-100 w-full py-3 rounded-xl items-center" 
+                  onPress={() => setProfileModalVisible(false)}
+                >
+                  <Text className="font-bold text-gray-700">Close</Text>
+                </TouchableOpacity>
+              </View>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        </Modal>
 
         <View className="w-full flex-row flex-wrap justify-between">
           {renderCard({
@@ -197,7 +252,7 @@ export default function ParentHome() {
             id: 'homework',
             title: 'Homework',
             boldSubtitle: alertCounts.homework > 0 ? String(alertCounts.homework) : undefined,
-            subtitle: alertCounts.homework > 0 ? 'pending tasks' : 'No pending tasks',
+            subtitle: alertCounts.homework > 0 ? 'New pending tasks' : 'Check pending tasks',
             iconLib: Ionicons,
             icon: 'book',
             iconColor: '#2563EB',
@@ -227,8 +282,7 @@ export default function ParentHome() {
           {renderCard({
             id: 'transport',
             title: 'Transport',
-            boldSubtitle: '10m',
-            subtitle: 'Bus arrives in',
+            subtitle: 'View bus details',
             iconLib: Ionicons,
             icon: 'bus',
             iconColor: '#2563EB',

@@ -6,6 +6,7 @@ export const useAuthStore = create((set) => ({
   role: null,
   student: null,
   profile: null,
+  token: null,
   loading: false,
   error: null,
   loginUser: async (reg_id, password) => {
@@ -19,6 +20,7 @@ export const useAuthStore = create((set) => ({
         set({
           student: data,
           role: 'parent',
+          token: data.token,
           loading: false,
         })
       } else {
@@ -26,6 +28,7 @@ export const useAuthStore = create((set) => ({
           user: data.user,
           role: data.role,
           profile: data.profile || null,
+          token: data.token,
           loading: false,
         })
       }
@@ -33,7 +36,7 @@ export const useAuthStore = create((set) => ({
   },
   logoutUser: async () => {
     await logout()
-    set({ user: null, role: null, student: null, profile: null, error: null })
+    set({ user: null, role: null, student: null, profile: null, token: null, error: null })
   },
   clearError: () => set({ error: null }),
 }))

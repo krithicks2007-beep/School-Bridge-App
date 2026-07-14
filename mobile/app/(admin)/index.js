@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Image, ScrollView, StatusBar, Text, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Image, ScrollView, StatusBar, Text, TouchableOpacity, useWindowDimensions, View, Modal, TouchableWithoutFeedback } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Feather, Ionicons } from '@expo/vector-icons';
@@ -8,12 +8,13 @@ import { useRouter } from 'expo-router';
 
 export default function AdminHome() {
   const [logoError, setLogoError] = useState(false);
+  const [profileModalVisible, setProfileModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
-  const { user, logoutUser } = useAuthStore();
+  const { user, profile, logoutUser } = useAuthStore();
   const router = useRouter();
 
-  const adminName = user?.name || 'Administrator';
+  const adminName = profile?.name || user?.name || 'Administrator';
   const isWideLayout = width >= 768;
   const headerLogoSize = isWideLayout ? 44 : 48;
   const headerLogoImageSize = isWideLayout ? 28 : 32;
@@ -115,11 +116,49 @@ export default function AdminHome() {
               <Text className="text-xs font-medium text-white/70">System Administrator</Text>
             </View>
 
-            <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-purple-400 shadow-md">
-              <Text className="text-[22px] font-black text-white">{adminName.charAt(0)}</Text>
-            </View>
+            <TouchableOpacity activeOpacity={0.8} onPress={() => setProfileModalVisible(true)}>
+              {profile?.photo_url ? (
+                <Image 
+                  source={{ uri: profile.photo_url }} 
+                  className="h-14 w-14 shrink-0 rounded-full border-2 border-white shadow-md"
+                />
+              ) : (
+                <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-purple-400 shadow-md">
+                  <Text className="text-[22px] font-black text-white">{adminName.charAt(0)}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
           </LinearGradient>
         </View>
+
+        <Modal visible={profileModalVisible} transparent animationType="fade" onRequestClose={() => setProfileModalVisible(false)}>
+          <TouchableWithoutFeedback onPress={() => setProfileModalVisible(false)}>
+            <View className="flex-1 bg-black/60 items-center justify-center px-6">
+              <TouchableWithoutFeedback>
+                <View className="bg-white w-full rounded-[24px] overflow-hidden items-center p-6 shadow-2xl">
+                  {profile?.photo_url ? (
+                    <Image 
+                      source={{ uri: profile.photo_url }} 
+                      className="h-32 w-32 rounded-full border-4 border-purple-100 mb-4"
+                    />
+                  ) : (
+                    <View className="h-32 w-32 rounded-full bg-purple-400 items-center justify-center border-4 border-purple-100 mb-4">
+                      <Text className="text-5xl font-black text-white">{adminName.charAt(0)}</Text>
+                    </View>
+                  )}
+                  <Text className="text-2xl font-black text-gray-900 mb-1 text-center">{adminName}</Text>
+                  <Text className="text-sm font-medium text-purple-600 mb-4">System Administrator</Text>
+                  <TouchableOpacity 
+                    className="bg-gray-100 w-full py-3 rounded-xl items-center" 
+                    onPress={() => setProfileModalVisible(false)}
+                  >
+                    <Text className="font-bold text-gray-700">Close</Text>
+                  </TouchableOpacity>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
 
         <View className="flex-1 w-full justify-center py-6">
           <View className="w-full flex-row justify-between mb-4">
@@ -184,6 +223,18 @@ export default function AdminHome() {
               iconColor: '#9333EA',
               gradient: ['#FFFFFF', '#F5F3FF'],
               route: '/(admin)/teachers',
+              customWidth: 'w-[48%]',
+              customHeight: 'h-[140px]', 
+            })}
+            {renderCard({
+              id: 'assign',
+              title: 'Role Assignment',
+              subtitle: 'Class Teacher & Subjects',
+              iconLib: Ionicons,
+              icon: 'briefcase',
+              iconColor: '#9333EA',
+              gradient: ['#FFFFFF', '#F5F3FF'],
+              route: '/(admin)/assign',
               customWidth: 'w-[48%]',
               customHeight: 'h-[140px]', 
             })}

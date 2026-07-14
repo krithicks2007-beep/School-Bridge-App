@@ -1,4 +1,9 @@
 const { createClient } = require('@supabase/supabase-js');
+const jwt = require('jsonwebtoken');
+
+const generateToken = (payload) => {
+  return jwt.sign(payload, process.env.JWT_SECRET || 'fallback_secret_for_development', { expiresIn: '7d' });
+};
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -23,32 +28,20 @@ const login = async (req, res, next) => {
     if (!studentError && student) {
       // Check password (assume column is 'password' or 'pin' just in case)
       if (student.password === password || student.pin === password) {
-        let classData = null;
-        if (student.class_id) {
-          const { data } = await supabase
-            .from('Class')
-            .select('*')
-            .eq('id', student.class_id)
-            .single();
-          classData = data;
-        }
+        let classPromise = student.class_id ? supabase.from('Class').select('*').eq('id', student.class_id).single() : Promise.resolve({ data: null });
+        let parentPromise = student.id ? supabase.from('ParentStudent').select('*').eq('student_id', student.id).single() : Promise.resolve({ data: null });
 
-        let parentStudent = null;
-        if (student.id) {
-          const { data } = await supabase
-            .from('ParentStudent')
-            .select('*')
-            .eq('student_id', student.id)
-            .single();
-          parentStudent = data;
-        }
+        const [classRes, parentRes] = await Promise.all([classPromise, parentPromise]);
+
+        const token = generateToken({ id: student.id, role: 'parent', reg_id: student.reg_id });
 
         return res.json({
           data: {
             ...student,
-            class: classData || null,
-            parentStudent: parentStudent || null,
+            class: classRes.data || null,
+            parentStudent: parentRes.data || null,
             role: 'parent',
+            token
           }
         });
       } else {
@@ -66,10 +59,12 @@ const login = async (req, res, next) => {
         
       if (!lowerError && lowerStudent) {
         if (lowerStudent.password === password || lowerStudent.pin === password) {
+          const token = generateToken({ id: lowerStudent.id, role: 'parent', reg_id: lowerStudent.reg_id });
           return res.json({
             data: {
               ...lowerStudent,
               role: 'parent',
+              token
             }
           });
         } else {
@@ -78,14 +73,16 @@ const login = async (req, res, next) => {
       }
     }
 
-    // 2. Try Teacher/Staff/Admin tables
+    // 2. Try Teacher/Staff/Admin tables in parallel
     const staffTables = ['Teacher', 'teachers', 'Staff', 'staff', 'Admin', 'admins'];
-    for (const table of staffTables) {
-      const { data: staff, error: staffError } = await supabase
-        .from(table)
-        .select('*')
-        .eq('reg_id', reg_id)
-        .single();
+    const staffPromises = staffTables.map(table => 
+      supabase.from(table).select('*').eq('reg_id', reg_id).single().then(res => ({ table, ...res }))
+    );
+    
+    const staffResults = await Promise.all(staffPromises);
+    
+    for (const result of staffResults) {
+      const { table, data: staff, error: staffError } = result;
         
       if (!staffError && staff) {
         // For Admin table, use staff_id as the password. For others, try various password columns.
@@ -107,12 +104,14 @@ const login = async (req, res, next) => {
           
           const { password: _p, Password: _P, pin: _pin, PIN: _PIN, staff_password, teacher_password, ...safeProfile } = staff;
           
+          const token = generateToken({ id: safeProfile.id, role, reg_id: safeProfile.reg_id || safeProfile.staff_id });
           return res.json({
             data: {
               user: { id: safeProfile.id, name: safeProfile.name },
               session: null,
               role,
               profile: { ...safeProfile, role },
+              token
             }
           });
         }
@@ -169,12 +168,14 @@ const login = async (req, res, next) => {
         const mergedProfile = { ...(userData || {}), ...staff };
         const { password: _p2, Password: _P2, pin: _pin2, PIN: _PIN2, staff_password: _sp2, teacher_password: _tp2, ...safeProfile2 } = mergedProfile;
 
+        const token = generateToken({ id: authData.user.id, role: normalizedRole, reg_id: safeProfile2.reg_id || safeProfile2.staff_id });
         return res.json({
           data: {
             user: authData.user,
             session: authData.session,
             role: normalizedRole,
-            profile: { ...safeProfile2, role: normalizedRole }
+            profile: { ...safeProfile2, role: normalizedRole },
+            token
           }
         });
       }

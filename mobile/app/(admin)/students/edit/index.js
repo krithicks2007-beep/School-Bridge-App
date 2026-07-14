@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Alert, Pla
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BASE_URL, handleApiResponse } from '../../../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../../../src/services/api';
 
 const getClassNumber = (className = '') => {
   const match = String(className).match(/\d+/);
@@ -34,7 +34,7 @@ export default function EditStudentsList() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/classes`);
+      const response = await apiFetch(`${BASE_URL}/api/classes`);
       const result = await handleApiResponse(response);
       const classList = sortClasses(result.data || []);
       setClasses(classList);
@@ -48,7 +48,7 @@ export default function EditStudentsList() {
 
   const fetchStudents = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/students`);
+      const response = await apiFetch(`${BASE_URL}/api/students`);
       const result = await handleApiResponse(response);
       setStudents(result.data || []);
     } catch (error) {

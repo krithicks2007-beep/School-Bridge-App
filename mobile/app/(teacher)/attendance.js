@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useAuthStore } from '../../src/store/authStore';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BASE_URL } from '../../src/services/api';
+import { BASE_URL , apiFetch} from '../../src/services/api';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
 export default function TeacherAttendance() {
@@ -29,7 +29,7 @@ export default function TeacherAttendance() {
         if (!profile?.id) return;
         
         // Fetch only the class where the teacher is the class teacher
-        const response = await fetch(`${BASE_URL}/api/attendance/teacher/${profile.id}`);
+        const response = await apiFetch(`${BASE_URL}/api/attendance/teacher/${profile.id}`);
         const data = await response.json();
         
         if (data.classes && data.classes.length > 0) {
@@ -58,7 +58,7 @@ export default function TeacherAttendance() {
       try {
         setLoading(true);
         const dateStr = selectedDate.toISOString().split('T')[0];
-        const response = await fetch(`${BASE_URL}/api/attendance/records/${activeClassId}/${dateStr}`);
+        const response = await apiFetch(`${BASE_URL}/api/attendance/records/${activeClassId}/${dateStr}`);
         const result = await response.json();
         
         const currentStudents = studentsData[activeClassId] || [];

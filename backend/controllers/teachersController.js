@@ -157,11 +157,47 @@ const searchTeachers = async (req, res, next) => {
       query = query.or(`name.ilike.%${q}%,reg_id.ilike.%${q}%`);
     }
     
-    const { data, error } = await query.order('name');
+    const { data: teachersData, error } = await query.order('name');
     
     if (error) {
       return res.status(500).json({ error: error.message });
     }
+
+    // Fetch classes to map UUIDs to readable names
+    const { data: classesData } = await supabase.from('Class').select('id, name, section');
+    const classMap = new Map();
+    if (classesData) {
+      classesData.forEach(c => {
+        classMap.set(c.id, `${c.name} ${c.section || ''}`.trim());
+      });
+    }
+
+    const data = (teachersData || []).map(teacher => {
+      // Map class_teacher_of
+      let classTeacherName = teacher.class_teacher_of;
+      if (classTeacherName && classMap.has(classTeacherName)) {
+        classTeacherName = classMap.get(classTeacherName);
+      }
+
+      // Map handling_classes
+      let handlingClassesNames = teacher.handling_classes || [];
+      if (Array.isArray(handlingClassesNames)) {
+        handlingClassesNames = handlingClassesNames.map(id => classMap.has(id) ? classMap.get(id) : id);
+      } else if (typeof handlingClassesNames === 'string') {
+        // If it's a single string UUID stored in a text field
+        if (classMap.has(handlingClassesNames)) {
+          handlingClassesNames = [classMap.get(handlingClassesNames)];
+        } else {
+          handlingClassesNames = [handlingClassesNames];
+        }
+      }
+
+      return {
+        ...teacher,
+        class_teacher_of: classTeacherName,
+        handling_classes: handlingClassesNames
+      };
+    });
     
     res.status(200).json({ data });
   } catch (error) {
@@ -169,4 +205,63 @@ const searchTeachers = async (req, res, next) => {
   }
 };
 
-module.exports = { addTeacher, getTeacher, updateTeacher, deleteTeacher, searchTeachers };
+const assignClassTeacher = async (req, res, next) => {
+  try {
+    const { teacherId, classId } = req.body;
+    
+    if (!teacherId || !classId) {
+      return res.status(400).json({ error: 'Teacher ID and Class ID are required.' });
+    }
+
+    // Step 1: Unassign the class from any existing teacher
+    const { error: unassignError } = await supabase
+      .from('Teacher')
+      .update({ class_teacher_of: null })
+      .eq('class_teacher_of', classId);
+
+    if (unassignError) {
+      return res.status(500).json({ error: unassignError.message });
+    }
+
+    // Step 2: Assign the class to the new teacher
+    const { data, error } = await supabase
+      .from('Teacher')
+      .update({ class_teacher_of: classId })
+      .eq('id', teacherId)
+      .select();
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ message: 'Class teacher assigned successfully', data: data[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const assignHandlingClasses = async (req, res, next) => {
+  try {
+    const { teacherId, handlingClasses } = req.body;
+    
+    if (!teacherId || !Array.isArray(handlingClasses)) {
+      return res.status(400).json({ error: 'Teacher ID and an array of Handling Classes are required.' });
+    }
+
+    const { data, error } = await supabase
+      .from('Teacher')
+      .update({ handling_classes: handlingClasses })
+      .eq('id', teacherId)
+      .select();
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ message: 'Handling classes updated successfully', data: data[0] });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { addTeacher, getTeacher, updateTeacher, deleteTeacher, searchTeachers, assignClassTeacher, assignHandlingClasses };

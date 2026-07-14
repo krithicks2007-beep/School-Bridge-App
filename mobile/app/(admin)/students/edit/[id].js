@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Picker } from '@react-native-picker/picker';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BASE_URL, handleApiResponse } from '../../../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../../../src/services/api';
 
 const emptyForm = {
   name: '',
@@ -72,8 +72,8 @@ export default function EditStudentDetails() {
     setLoading(true);
     try {
       const [classesResponse, studentResponse] = await Promise.all([
-        fetch(`${BASE_URL}/api/classes`),
-        fetch(`${BASE_URL}/api/students/${id}`),
+        apiFetch(`${BASE_URL}/api/classes`),
+        apiFetch(`${BASE_URL}/api/students/${id}`),
       ]);
 
       const classesResult = await handleApiResponse(classesResponse);
@@ -141,7 +141,7 @@ export default function EditStudentDetails() {
 
     setSaving(true);
     try {
-      const response = await fetch(`${BASE_URL}/api/students/${id}`, {
+      const response = await apiFetch(`${BASE_URL}/api/students/${id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

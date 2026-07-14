@@ -3,10 +3,9 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Modal, Tex
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BASE_URL, handleApiResponse } from '../../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../../src/services/api';
 
 const DAYS = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const PERIODS = [1, 2, 3, 4, 5, 6, 7, 8];
 
 export default function EditTimetable() {
   const router = useRouter();
@@ -15,14 +14,17 @@ export default function EditTimetable() {
   const isWideLayout = width >= 768;
   const dayColumnWidth = isWideLayout ? 120 : 96;
   const minPeriodColumnWidth = isWideLayout ? 128 : 112;
-  const tableWidth = Math.max(width, dayColumnWidth + PERIODS.length * minPeriodColumnWidth);
-  const periodColumnWidth = (tableWidth - dayColumnWidth) / PERIODS.length;
-
   const [classes, setClasses] = useState([]);
   const [selectedClass, setSelectedClass] = useState(null); // { id, name, section }
   const [timetableData, setTimetableData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [classesLoading, setClassesLoading] = useState(true);
+
+  const maxPeriodNum = timetableData.length > 0 ? Math.max(8, ...timetableData.map(item => Number(item.period_number) || 8)) : 8;
+  const PERIODS = Array.from({ length: maxPeriodNum }, (_, i) => i + 1);
+
+  const tableWidth = Math.max(width, dayColumnWidth + PERIODS.length * minPeriodColumnWidth);
+  const periodColumnWidth = (tableWidth - dayColumnWidth) / PERIODS.length;
 
   const [editingCell, setEditingCell] = useState(null);
   const [editSubject, setEditSubject] = useState('');
@@ -33,7 +35,7 @@ export default function EditTimetable() {
   useEffect(() => {
     const loadClasses = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/classes`);
+        const response = await apiFetch(`${BASE_URL}/api/classes`);
         const result = await handleApiResponse(response);
         const classList = result.data || [];
         setClasses(classList);
@@ -57,7 +59,7 @@ export default function EditTimetable() {
     setLoading(true);
     setTimetableData([]);
     try {
-      const response = await fetch(`${BASE_URL}/api/timetable?class_id=${selectedClass.id}`);
+      const response = await apiFetch(`${BASE_URL}/api/timetable?class_id=${selectedClass.id}`);
       const result = await handleApiResponse(response);
       setTimetableData(result.data || []);
     } catch (error) {
@@ -86,7 +88,7 @@ export default function EditTimetable() {
     if (!editingCell) return;
     setIsSaving(true);
     try {
-      const response = await fetch(`${BASE_URL}/api/timetable/${editingCell.id}`, {
+      const response = await apiFetch(`${BASE_URL}/api/timetable/${editingCell.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ subject: editSubject, teacher_id: editTeacher }),

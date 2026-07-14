@@ -27,7 +27,7 @@ export const getExamMarkAlertItems = (exams = []) => {
   return exams.flatMap((exam) => {
     return (exam?.subjects || []).map((mark) => ({
       ...mark,
-      created_at: mark?.created_at || mark?.updated_at || mark?.date || exam?.date,
+      created_at: mark?.created_at || mark?.updated_at || mark?.inserted_at, // Do not fallback to exam date as it can be in the future
     }));
   });
 };

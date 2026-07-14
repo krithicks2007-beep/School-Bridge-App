@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
-import { BASE_URL, handleApiResponse } from '../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../src/services/api';
 
 export default function TransportScreen() {
   const router = useRouter();
@@ -22,7 +22,7 @@ export default function TransportScreen() {
 
   const fetchTransportData = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/transport/${student.id}`);
+      const response = await apiFetch(`${BASE_URL}/api/transport/${student.id}`);
       const result = await handleApiResponse(response);
       setTransport(result.data);
     } catch (error) {
@@ -152,7 +152,10 @@ export default function TransportScreen() {
             <Text className="text-sm font-medium text-slate-500">{transport.driver_phone || 'No phone number'}</Text>
           </View>
           {transport.driver_phone && (
-            <TouchableOpacity className="h-10 w-10 bg-emerald-50 rounded-full items-center justify-center">
+            <TouchableOpacity 
+              className="h-10 w-10 bg-emerald-50 rounded-full items-center justify-center"
+              onPress={() => Linking.openURL(`tel:${transport.driver_phone}`)}
+            >
               <Ionicons name="call" size={20} color="#10B981" />
             </TouchableOpacity>
           )}

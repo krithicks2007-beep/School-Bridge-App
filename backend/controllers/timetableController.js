@@ -150,10 +150,13 @@ const uploadTimetable = async (req, res, next) => {
       class_id,
       day_of_week: row.day_of_week || row.Day || row.day,
       period_number: row.period_number || row.Period || row.period,
-      subject_name: row.subject_name || row.Subject || row.subject,
+      subject: row.subject || row.Subject || row.subject_name || row.Subject_name,
       teacher_id: row.teacher_id || row.Teacher || row.teacher,
       start_time: row.start_time || row.Start || row.start,
-      end_time: row.end_time || row.End || row.end
+      end_time: row.end_time || row.End || row.end,
+      room: row.room || row.Room,
+      is_break: row.is_break || row.Is_break || row.Is_Break || false,
+      break_label: row.break_label || row.Break_label || row.Break_Label
     }));
 
     // Delete existing timetable for this class and insert new

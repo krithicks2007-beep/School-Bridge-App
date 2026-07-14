@@ -4,14 +4,14 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import DateTimePicker from '@react-native-community/datetimepicker';
-import { BASE_URL, handleApiResponse } from '../../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../../src/services/api';
 import { useAuthStore } from '../../../src/store/authStore';
 
 export default function CreateAnnouncement() {
   const params = useLocalSearchParams();
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { user } = useAuthStore();
+  const { profile } = useAuthStore();
   
   const type = params?.type || 'all'; // 'all', 'specific', 'class'
   const isSpecific = type === 'specific';
@@ -23,7 +23,9 @@ export default function CreateAnnouncement() {
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [students, setStudents] = useState([]);
   const [classes, setClasses] = useState([]);
-  const [selectedStudent, setSelectedStudent] = useState(null);
+  
+  // Specific Students (Multi-select)
+  const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedClasses, setSelectedClasses] = useState([]);
   
   const [loadingData, setLoadingData] = useState(false);
@@ -42,7 +44,7 @@ export default function CreateAnnouncement() {
   const fetchStudents = async () => {
     try {
       setLoadingData(true);
-      const response = await fetch(`${BASE_URL}/api/announcements/students`);
+      const response = await apiFetch(`${BASE_URL}/api/announcements/students`);
       const data = await handleApiResponse(response);
       setStudents(data.students || []);
     } catch (error) {
@@ -55,7 +57,7 @@ export default function CreateAnnouncement() {
   const fetchClasses = async () => {
     try {
       setLoadingData(true);
-      const response = await fetch(`${BASE_URL}/api/classes`);
+      const response = await apiFetch(`${BASE_URL}/api/classes`);
       const data = await handleApiResponse(response);
       setClasses(data.data || []);
     } catch (error) {
@@ -67,17 +69,20 @@ export default function CreateAnnouncement() {
 
   const handleSubmit = async () => {
     if (!title.trim() || !content.trim()) {
-      Alert.alert('Validation Error', 'Title and Content are required.');
+      if (Platform.OS === 'web') window.alert('Validation Error: Title and Content are required.');
+      else Alert.alert('Validation Error', 'Title and Content are required.');
       return;
     }
 
-    if (isSpecific && !selectedStudent) {
-      Alert.alert('Validation Error', 'Please select a student.');
+    if (isSpecific && selectedStudents.length === 0) {
+      if (Platform.OS === 'web') window.alert('Validation Error: Please select at least one student.');
+      else Alert.alert('Validation Error', 'Please select at least one student.');
       return;
     }
 
     if (isClass && selectedClasses.length === 0) {
-      Alert.alert('Validation Error', 'Please select at least one class.');
+      if (Platform.OS === 'web') window.alert('Validation Error: Please select at least one class.');
+      else Alert.alert('Validation Error', 'Please select at least one class.');
       return;
     }
 
@@ -86,7 +91,7 @@ export default function CreateAnnouncement() {
       
       let audience = 'all';
       if (isSpecific) {
-        audience = `student:${selectedStudent.id}`;
+        audience = `student:${selectedStudents.map(s => s.id).join(',')}`;
       } else if (isClass) {
         audience = `class:${selectedClasses.join(',')}`;
       }
@@ -95,22 +100,31 @@ export default function CreateAnnouncement() {
         title: title.trim(),
         content: content.trim(),
         target_audience: audience,
-        author_id: user?.id,
+        author_id: profile?.id,
         expires_at: expiresAt.toISOString()
       };
 
-      const response = await fetch(`${BASE_URL}/api/announcements`, {
+      const response = await apiFetch(`${BASE_URL}/api/announcements`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
       await handleApiResponse(response);
 
-      Alert.alert('Success', 'Announcement sent successfully!', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
+      if (Platform.OS === 'web') {
+        window.alert('Announcement sent successfully!');
+        router.back();
+      } else {
+        Alert.alert('Success', 'Announcement sent successfully!', [
+          { text: 'OK', onPress: () => router.back() }
+        ]);
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to send announcement. ' + error.message);
+      if (Platform.OS === 'web') {
+        window.alert('Error: Failed to send announcement. ' + error.message);
+      } else {
+        Alert.alert('Error', 'Failed to send announcement. ' + error.message);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -128,6 +142,14 @@ export default function CreateAnnouncement() {
     );
   };
 
+  const toggleStudent = (student) => {
+    setSelectedStudents(prev => 
+      prev.find(s => s.id === student.id) 
+        ? prev.filter(s => s.id !== student.id) 
+        : [...prev, student]
+    );
+  };
+
   return (
     <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 20 }}>
       {/* Header */}
@@ -140,20 +162,27 @@ export default function CreateAnnouncement() {
 
       <ScrollView className="flex-1 p-5" showsVerticalScrollIndicator={false}>
         <Text className="text-sm font-semibold text-gray-500 mb-2 uppercase tracking-wider">
-          Audience: {isSpecific ? 'Specific Student' : isClass ? 'Specific Class' : 'All Students'}
+          Audience: {isSpecific ? 'Specific Students' : isClass ? 'Specific Class' : 'All Students'}
         </Text>
 
         {isSpecific && (
           <View className="mb-6">
-            <Text className="text-sm font-bold text-gray-800 mb-2">Select Student</Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <Text className="text-sm font-bold text-gray-800">Select Students</Text>
+              {selectedStudents.length > 0 && (
+                <TouchableOpacity onPress={() => setSelectedStudents([])}>
+                  <Text className="text-xs font-bold text-red-500">Clear</Text>
+                </TouchableOpacity>
+              )}
+            </View>
             <TouchableOpacity 
               className="flex-row items-center justify-between bg-gray-50 border border-gray-200 rounded-2xl px-4 py-4"
               onPress={() => setModalVisible(true)}
             >
-              <Text className={`text-base ${selectedStudent ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
-                {selectedStudent 
-                  ? `${selectedStudent.name || 'Unknown'} (${selectedStudent.admission_number || 'N/A'})` 
-                  : 'Tap to select a student'}
+              <Text className={`text-base ${selectedStudents.length > 0 ? 'text-gray-900 font-medium' : 'text-gray-400'}`}>
+                {selectedStudents.length > 0 
+                  ? `${selectedStudents.length} Student(s) Selected` 
+                  : 'Tap to select students'}
               </Text>
               {loadingData ? (
                 <ActivityIndicator size="small" color="#3B82F6" />
@@ -286,14 +315,14 @@ export default function CreateAnnouncement() {
       <Modal visible={modalVisible} animationType="slide" presentationStyle="pageSheet">
         <View className="flex-1 bg-white" style={{ paddingTop: insets.top + 20 }}>
           <View className="flex-row items-center justify-between px-5 pb-4 border-b border-gray-100">
-            <Text className="text-xl font-bold text-gray-900">Select Student</Text>
-            <TouchableOpacity onPress={() => setModalVisible(false)} className="p-2">
-              <Ionicons name="close" size={24} color="#6B7280" />
+            <Text className="text-xl font-bold text-gray-900">Select Students</Text>
+            <TouchableOpacity onPress={() => setModalVisible(false)} className="bg-blue-600 px-4 py-1.5 rounded-full">
+              <Text className="text-white font-bold">Done</Text>
             </TouchableOpacity>
           </View>
           
           <View className="p-4 border-b border-gray-100">
-            <View className="flex-row items-center bg-gray-50 rounded-xl px-3 py-2">
+            <View className="flex-row items-center bg-gray-50 rounded-xl px-3 py-2 border border-gray-200">
               <Ionicons name="search" size={20} color="#9CA3AF" />
               <TextInput 
                 className="flex-1 ml-2 text-base text-gray-900 h-10"
@@ -302,31 +331,42 @@ export default function CreateAnnouncement() {
                 onChangeText={setSearchQuery}
                 autoCorrect={false}
               />
+              {searchQuery.length > 0 && (
+                <TouchableOpacity onPress={() => setSearchQuery('')}>
+                  <Ionicons name="close-circle" size={20} color="#9CA3AF" />
+                </TouchableOpacity>
+              )}
             </View>
           </View>
 
           <FlatList 
             data={filteredStudents}
             keyExtractor={item => item.id.toString()}
-            renderItem={({item}) => (
-              <TouchableOpacity 
-                className="flex-row items-center py-4 px-5 border-b border-gray-50"
-                onPress={() => {
-                  setSelectedStudent(item);
-                  setModalVisible(false);
-                  setSearchQuery('');
-                }}
-              >
-                <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-4">
-                  <Text className="text-blue-600 font-bold text-lg">{(item.name || 'U').charAt(0)}</Text>
-                </View>
-                <View className="flex-1">
-                  <Text className="text-base font-bold text-gray-900">{item.name}</Text>
-                  <Text className="text-sm text-gray-500">Admn No: {item.admission_number || 'N/A'}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#D1D5DB" />
-              </TouchableOpacity>
-            )}
+            renderItem={({item}) => {
+              const isSelected = selectedStudents.some(s => s.id === item.id);
+              return (
+                <TouchableOpacity 
+                  className={`flex-row items-center py-4 px-5 border-b border-gray-50 ${isSelected ? 'bg-blue-50/30' : ''}`}
+                  onPress={() => toggleStudent(item)}
+                  activeOpacity={0.7}
+                >
+                  <View className="mr-3">
+                     <Ionicons 
+                       name={isSelected ? "checkmark-circle" : "ellipse-outline"} 
+                       size={24} 
+                       color={isSelected ? "#2563EB" : "#CBD5E1"} 
+                     />
+                  </View>
+                  <View className="w-10 h-10 rounded-full bg-blue-100 items-center justify-center mr-4">
+                    <Text className="text-blue-600 font-bold text-lg">{(item.name || 'U').charAt(0)}</Text>
+                  </View>
+                  <View className="flex-1">
+                    <Text className={`text-base font-bold ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>{item.name}</Text>
+                    <Text className="text-sm text-gray-500">Admn No: {item.admission_number || 'N/A'}</Text>
+                  </View>
+                </TouchableOpacity>
+              )
+            }}
             ListEmptyComponent={
               <View className="items-center justify-center py-10">
                 <Text className="text-gray-500">No students found.</Text>

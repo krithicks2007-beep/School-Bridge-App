@@ -69,6 +69,23 @@ export default function AnnouncementOptions() {
             <Ionicons name="chevron-forward" size={20} color="#9333EA" />
           </LinearGradient>
         </TouchableOpacity>
+
+        <TouchableOpacity
+          className="mb-4 h-32 w-full overflow-hidden rounded-[20px] border border-amber-100 bg-white shadow-md shadow-amber-900/10"
+          activeOpacity={0.85}
+          onPress={() => router.push({ pathname: '/(admin)/announcement/sent' })}
+        >
+          <LinearGradient colors={['#FFFBEB', '#FEF3C7']} className="flex-1 p-5 flex-row items-center" start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
+            <View className="h-14 w-14 items-center justify-center rounded-full bg-amber-500 shadow-sm mr-4">
+              <Ionicons name="document-text" size={28} color="#FFF" />
+            </View>
+            <View className="flex-1">
+              <Text className="text-lg font-bold text-gray-900">Recently Sent</Text>
+              <Text className="text-sm text-gray-600 mt-1">View, edit, or delete previously sent announcements.</Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="#D97706" />
+          </LinearGradient>
+        </TouchableOpacity>
       </View>
     </View>
   );

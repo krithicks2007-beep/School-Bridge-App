@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useAuthStore } from '../../src/store/authStore';
-import { BASE_URL, handleApiResponse } from '../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../src/services/api';
 import { markReadNow } from '../../src/services/readAlerts';
 
 export default function AnnouncementScreen() {
@@ -25,7 +25,7 @@ export default function AnnouncementScreen() {
       const studentId = student?.id || '';
       const classId = student?.class_id || '';
       
-      const response = await fetch(`${BASE_URL}/api/announcements?studentId=${studentId}&classId=${classId}`);
+      const response = await apiFetch(`${BASE_URL}/api/announcements?studentId=${studentId}&classId=${classId}`);
       const data = await handleApiResponse(response);
       setAnnouncements(data.announcements || []);
       await markReadNow('parent-announcements', student?.id);

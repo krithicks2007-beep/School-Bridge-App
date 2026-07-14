@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView, ActivityIndicator, Modal, Tex
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { BASE_URL, handleApiResponse } from '../../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../../src/services/api';
 
 export default function TransportManagement() {
   const router = useRouter();
@@ -40,7 +40,7 @@ export default function TransportManagement() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/classes`);
+      const response = await apiFetch(`${BASE_URL}/api/classes`);
       const result = await handleApiResponse(response);
       const classList = result.data || [];
       setClasses(classList);
@@ -56,7 +56,7 @@ export default function TransportManagement() {
     setLoadingStudents(true);
     setStudents([]);
     try {
-      const response = await fetch(`${BASE_URL}/api/transport?class_id=${selectedClass.id}`);
+      const response = await apiFetch(`${BASE_URL}/api/transport?class_id=${selectedClass.id}`);
       const result = await handleApiResponse(response);
       setStudents(result.data || []);
     } catch (error) {
@@ -139,7 +139,7 @@ export default function TransportManagement() {
         finalDropTime += ':00';
       }
 
-      const response = await fetch(`${BASE_URL}/api/transport/${editingStudent.id}`, {
+      const response = await apiFetch(`${BASE_URL}/api/transport/${editingStudent.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ ...formData, pickup_time: finalPickupTime, drop_time: finalDropTime }),

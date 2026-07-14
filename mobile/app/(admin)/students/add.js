@@ -4,7 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Picker } from '@react-native-picker/picker';
-import { BASE_URL } from '../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../src/services/api';
 
 function InputField({ label, value, onChangeText, placeholder, keyboardType = "default", maxLength }) {
   return (
@@ -54,7 +54,7 @@ export default function AddStudent() {
 
   const fetchClasses = async () => {
     try {
-      const response = await fetch(`${BASE_URL}/api/classes`);
+      const response = await apiFetch(`${BASE_URL}/api/classes`);
       const result = await response.json();
       if (result.data) {
         setClasses(result.data);
@@ -109,7 +109,7 @@ export default function AddStudent() {
       const selectedClass = classes.find(c => c.id === formData.class_id);
       const submitData = { ...formData, grade: selectedClass?.name };
 
-      const response = await fetch(`${BASE_URL}/api/students`, {
+      const response = await apiFetch(`${BASE_URL}/api/students`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

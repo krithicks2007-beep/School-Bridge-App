@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
-import { BASE_URL, handleApiResponse } from '../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../src/services/api';
 import { useAuthStore } from '../../src/store/authStore';
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
@@ -69,7 +69,7 @@ export default function TimetableScreen() {
     const dayStr = DAY_NAMES[dayIndex];
     
     try {
-      const response = await fetch(`${BASE_URL}/api/timetable?class_id=${classId}&day_of_week=${dayStr}`);
+      const response = await apiFetch(`${BASE_URL}/api/timetable?class_id=${classId}&day_of_week=${dayStr}`);
       const result = await handleApiResponse(response);
       const data = result.data;
 
@@ -85,24 +85,11 @@ export default function TimetableScreen() {
         });
 
         if (uniquePeriods.length > 0) {
-          uniquePeriods.push({
-            id: 'break_short',
-            is_break: true,
-            break_label: 'Short Break',
-            start_time: '10:30:00',
-            end_time: '10:45:00',
-            period_number: 2.5
+          uniquePeriods.sort((a, b) => {
+            if (!a.start_time) return 1;
+            if (!b.start_time) return -1;
+            return a.start_time.localeCompare(b.start_time);
           });
-          uniquePeriods.push({
-            id: 'break_lunch',
-            is_break: true,
-            break_label: 'Lunch Break',
-            start_time: '12:15:00',
-            end_time: '13:00:00',
-            period_number: 4.5
-          });
-
-          uniquePeriods.sort((a, b) => a.period_number - b.period_number);
         }
       }
       

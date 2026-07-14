@@ -1,6 +1,6 @@
 import * as ImagePicker from 'expo-image-picker';
 import { compressImage } from '../utils/imageCompressor';
-import { BASE_URL, handleApiResponse } from './api';
+import { BASE_URL, handleApiResponse , apiFetch} from './api';
 
 export const pickStudentPhoto = async () => {
 
@@ -37,7 +37,7 @@ export const uploadStudentPhoto = async (studentId) => {
       name: 'photo.jpg',
     });
 
-    const response = await fetch(`${BASE_URL}/api/students/${studentId}/photo`, {
+    const response = await apiFetch(`${BASE_URL}/api/students/${studentId}/photo`, {
       method: 'POST',
       body: formData,
       headers: {

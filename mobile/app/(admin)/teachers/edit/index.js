@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, TextInput, ActivityIndicator, Alert, Flat
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { BASE_URL } from '../../../../src/services/api';
+import { BASE_URL , apiFetch} from '../../../../src/services/api';
 
 export default function EditTeacherSearch() {
   const router = useRouter();
@@ -25,7 +25,7 @@ export default function EditTeacherSearch() {
         ? `${BASE_URL}/api/teachers?q=${encodeURIComponent(query)}`
         : `${BASE_URL}/api/teachers`;
         
-      const response = await fetch(url);
+      const response = await apiFetch(url);
       const result = await response.json();
       if (result.data) {
         setTeachers(result.data);

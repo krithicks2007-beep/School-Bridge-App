@@ -87,17 +87,21 @@ const getParentMarks = async (req, res, next) => {
       return res.status(500).json({ error: error.message });
     }
 
-    // Group by exam_name
+    // Group by exam_name (case-insensitive and trimmed to prevent duplicates)
     const exams = {};
     data.forEach(mark => {
-      if (!exams[mark.exam_name]) {
-        exams[mark.exam_name] = {
-          exam_name: mark.exam_name,
+      const normalizedName = mark.exam_name.trim().toLowerCase();
+      let key = Object.keys(exams).find(k => k.trim().toLowerCase() === normalizedName);
+      
+      if (!key) {
+        key = mark.exam_name.trim(); // Use the first found casing as the display name
+        exams[key] = {
+          exam_name: key,
           date: mark.date,
           subjects: []
         };
       }
-      exams[mark.exam_name].subjects.push(mark);
+      exams[key].subjects.push(mark);
     });
 
     const result = Object.values(exams);
@@ -156,4 +160,98 @@ const getTeacherMarks = async (req, res, next) => {
   }
 };
 
-module.exports = { saveMarks, getParentMarks, getTeacherMarks };
+const deleteExamMarks = async (req, res, next) => {
+  try {
+    const { exam_name, class_id, subject } = req.query;
+
+    if (!exam_name || !class_id || !subject) {
+      return res.status(400).json({ error: 'Exam name, class ID, and subject are required' });
+    }
+
+    // Get all students in the class
+    const { data: students, error: studentError } = await supabase
+      .from('Student')
+      .select('id')
+      .eq('class_id', class_id);
+
+    if (studentError) {
+      return res.status(500).json({ error: studentError.message });
+    }
+
+    const studentIds = students.map(s => s.id);
+
+    if (studentIds.length === 0) {
+      return res.status(200).json({ message: 'No students found for this class, nothing to delete' });
+    }
+
+    // Delete marks for these students, exam_name, and subject
+    const { error } = await supabase
+      .from('TestMark')
+      .delete()
+      .in('student_id', studentIds)
+      .eq('exam_name', exam_name)
+      .eq('subject', subject);
+
+    if (error) {
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.status(200).json({ message: 'Exam marks deleted successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+const getTeacherExams = async (req, res, next) => {
+  try {
+    const { class_id } = req.query;
+    
+    if (!class_id) {
+      return res.status(400).json({ error: 'Class ID is required' });
+    }
+
+    // Get students in this class
+    const { data: students, error: studentError } = await supabase
+      .from('Student')
+      .select('id')
+      .eq('class_id', class_id);
+
+    if (studentError) {
+      return res.status(500).json({ error: studentError.message });
+    }
+
+    const studentIds = students.map(s => s.id);
+    if (studentIds.length === 0) {
+      return res.status(200).json({ data: [] });
+    }
+
+    // Get all marks for these students
+    const { data: marks, error: marksError } = await supabase
+      .from('TestMark')
+      .select('exam_name, subject, date')
+      .in('student_id', studentIds)
+      .order('date', { ascending: false });
+
+    if (marksError) {
+      return res.status(500).json({ error: marksError.message });
+    }
+
+    // Get unique combinations of exam_name and subject
+    const uniqueExams = [];
+    const seen = new Set();
+    
+    marks.forEach(m => {
+      const key = `${m.exam_name}_${m.subject}`;
+      if (!seen.has(key)) {
+        seen.add(key);
+        uniqueExams.push(m);
+      }
+    });
+
+    res.status(200).json({ data: uniqueExams });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { saveMarks, getParentMarks, getTeacherMarks, deleteExamMarks, getTeacherExams };

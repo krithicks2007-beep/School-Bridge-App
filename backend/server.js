@@ -7,6 +7,7 @@ app.use(cors());
 app.use(express.json());
 
 const { createClient } = require('@supabase/supabase-js');
+const { verifyToken } = require('./middleware/authMiddleware');
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
 
 app.get('/health', async (req, res) => {
@@ -51,18 +52,18 @@ const timetableRoutes = require('./routes/timetable');
 const homeworkRoutes = require('./routes/homework');
 
 app.use('/api/auth', authRoutes);
-app.use('/api/students', studentsRoutes);
-app.use('/api/teachers', teachersRoutes);
-app.use('/api/announcements', announcementsRoutes);
-app.use('/api/marks', marksRoutes);
-app.use('/api/transport', transportRoutes);
-app.use('/api/attendance', attendanceRoutes);
-app.use('/api/timetable', timetableRoutes);
-app.use('/api/homework', homeworkRoutes);
+app.use('/api/students', verifyToken, studentsRoutes);
+app.use('/api/teachers', verifyToken, teachersRoutes);
+app.use('/api/announcements', verifyToken, announcementsRoutes);
+app.use('/api/marks', verifyToken, marksRoutes);
+app.use('/api/transport', verifyToken, transportRoutes);
+app.use('/api/attendance', verifyToken, attendanceRoutes);
+app.use('/api/timetable', verifyToken, timetableRoutes);
+app.use('/api/homework', verifyToken, homeworkRoutes);
 
 
 // Classes endpoint for admin dropdowns
-app.get('/api/classes', async (req, res) => {
+app.get('/api/classes', verifyToken, async (req, res) => {
   const { createClient } = require('@supabase/supabase-js');
   const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
   const { data, error } = await supabase.from('Class').select('id, name, section, Teacher!fk_class_teacher(name)').order('name');

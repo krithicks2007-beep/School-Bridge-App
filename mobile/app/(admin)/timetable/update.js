@@ -4,7 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons, Feather } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import * as DocumentPicker from 'expo-document-picker';
-import { BASE_URL, handleApiResponse } from '../../../src/services/api';
+import { BASE_URL, handleApiResponse , apiFetch} from '../../../src/services/api';
 
 export default function UpdateTimetable() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function UpdateTimetable() {
   useEffect(() => {
     const loadClasses = async () => {
       try {
-        const response = await fetch(`${BASE_URL}/api/classes`);
+        const response = await apiFetch(`${BASE_URL}/api/classes`);
         const result = await handleApiResponse(response);
         const classList = result.data || [];
         setClasses(classList);
@@ -72,7 +72,7 @@ export default function UpdateTimetable() {
         type: file.mimeType || 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
       });
 
-      const response = await fetch(`${BASE_URL}/api/timetable/upload`, {
+      const response = await apiFetch(`${BASE_URL}/api/timetable/upload`, {
         method: 'POST',
         body: formData,
         headers: { Accept: 'application/json' },
@@ -130,6 +130,24 @@ export default function UpdateTimetable() {
           </ScrollView>
         </View>
         )}
+
+        <View className="bg-blue-50/50 border border-blue-100 rounded-xl p-4 mb-6">
+          <View className="flex-row items-center mb-2">
+            <Ionicons name="information-circle" size={20} color="#3B82F6" />
+            <Text className="text-blue-800 font-bold ml-2">Expected File Format</Text>
+          </View>
+          <Text className="text-sm text-blue-700/80 mb-2">
+            Your Excel file (.xlsx or .xls) should have the following column headers exactly as spelled below:
+          </Text>
+          <View className="bg-white rounded-lg p-3 border border-blue-100/50 shadow-sm">
+            <Text className="text-xs text-gray-600 font-medium leading-5">
+              <Text className="font-bold text-gray-800">Day</Text> (e.g. Monday), <Text className="font-bold text-gray-800">Period</Text> (e.g. 1), <Text className="font-bold text-gray-800">Subject</Text>, <Text className="font-bold text-gray-800">Teacher</Text> (Teacher ID or Name), <Text className="font-bold text-gray-800">Start</Text> (e.g. 09:00:00), and <Text className="font-bold text-gray-800">End</Text> (e.g. 09:45:00).
+            </Text>
+            <Text className="text-xs text-gray-500 mt-2">
+              Optional columns: <Text className="font-bold text-gray-700">Room</Text>, <Text className="font-bold text-gray-700">Is_break</Text> (true/false), <Text className="font-bold text-gray-700">Break_label</Text>.
+            </Text>
+          </View>
+        </View>
 
         <Text className="text-sm font-bold text-gray-700 mb-2">Upload Excel File</Text>
         <TouchableOpacity
