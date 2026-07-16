@@ -24,6 +24,7 @@
     ],
     "android": {
       "package": "com.schoolbridgeapp.mobile",
+      "googleServicesFile": "./google-services.json",
       "adaptiveIcon": {
         "foregroundImage": "./assets/custom-icon.png",
         "backgroundColor": "#ffffff"
