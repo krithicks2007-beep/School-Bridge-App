@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -29,6 +30,19 @@ const postHomework = async (req, res, next) => {
     if (error) {
       return res.status(500).json({ error: error.message });
     }
+
+    // --- Send Push Notifications ---
+    try {
+      const { data: students } = await supabase.from('Student').select('push_token').eq('class_id', class_id).not('push_token', 'is', null);
+      let tokens = students ? students.map(s => s.push_token) : [];
+      tokens = tokens.filter(t => t);
+      if (tokens.length > 0) {
+        await sendPushNotification(tokens, `New Homework: ${subject}`, title);
+      }
+    } catch (pushErr) {
+      console.error('Error sending push for homework:', pushErr);
+    }
+    // ---------------------------------
 
     res.status(201).json({ message: 'Homework posted successfully', data: data[0] });
   } catch (error) {

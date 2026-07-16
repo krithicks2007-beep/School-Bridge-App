@@ -1,10 +1,11 @@
 {
   "expo": {
-    "name": "School-Bridge App",
+    "name": "School Bridge",
     "slug": "school-parent-app",
     "version": "1.0.0",
     "scheme": "school-bridge",
     "orientation": "portrait",
+    "icon": "./assets/custom-icon.png",
     "userInterfaceStyle": "light",
     "plugins": [
       "expo-router",
@@ -15,13 +16,18 @@
           "cameraPermission": "Allow School App to use camera to take student profile picture."
         }
       ],
-      "@react-native-community/datetimepicker"
+      "@react-native-community/datetimepicker",
+      "expo-notifications"
     ],
     "assetBundlePatterns": [
       "**/*"
     ],
     "android": {
-      "package": "com.schoolbridgeapp.mobile"
+      "package": "com.schoolbridgeapp.mobile",
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/custom-icon.png",
+        "backgroundColor": "#ffffff"
+      }
     },
     "ios": {
       "bundleIdentifier": "com.schoolbridgeapp.mobile"

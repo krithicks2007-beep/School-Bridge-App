@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -56,6 +57,38 @@ const createAnnouncement = async (req, res, next) => {
     if (error) {
       return res.status(500).json({ error: error.message });
     }
+
+    // --- Send Push Notifications ---
+    try {
+      const aud = target_audience || 'all';
+      let tokens = [];
+
+      if (aud === 'all') {
+        const { data: students } = await supabase.from('Student').select('push_token').not('push_token', 'is', null);
+        if (students) tokens = students.map(s => s.push_token);
+        
+        if (!students || students.length === 0) {
+           const { data: lowerStudents } = await supabase.from('students').select('push_token').not('push_token', 'is', null);
+           if (lowerStudents) tokens = [...tokens, ...lowerStudents.map(s => s.push_token)];
+        }
+      } else if (aud.startsWith('class:')) {
+        const classes = aud.replace('class:', '').split(',');
+        const { data: students } = await supabase.from('Student').select('push_token').in('class_id', classes).not('push_token', 'is', null);
+        if (students) tokens = students.map(s => s.push_token);
+      } else if (aud.startsWith('student:')) {
+        const studentIds = aud.replace('student:', '').split(',');
+        const { data: students } = await supabase.from('Student').select('push_token').in('id', studentIds).not('push_token', 'is', null);
+        if (students) tokens = students.map(s => s.push_token);
+      }
+
+      tokens = tokens.filter(t => t);
+      if (tokens.length > 0) {
+        await sendPushNotification(tokens, 'New Announcement', title);
+      }
+    } catch (pushErr) {
+      console.error('Error sending push for announcement:', pushErr);
+    }
+    // ---------------------------------
 
     res.status(201).json({ message: 'Announcement created successfully', data: data[0] });
   } catch (error) {

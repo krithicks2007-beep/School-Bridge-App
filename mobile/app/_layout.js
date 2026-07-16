@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Slot, useRouter, useSegments } from 'expo-router'
 import { useAuthStore } from '../src/store/authStore'
+import NotificationService from '../src/services/NotificationService'
 import '../global.css'
 
 export default function RootLayout() {
@@ -11,6 +12,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     setIsMounted(true)
+    NotificationService.initializeNotifications()
   }, [])
 
   useEffect(() => {

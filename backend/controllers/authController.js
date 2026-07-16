@@ -189,4 +189,32 @@ const login = async (req, res, next) => {
   }
 };
 
-module.exports = { login };
+const savePushToken = async (req, res, next) => {
+  try {
+    const { token, role, id } = req.body;
+    if (!token || !role || !id) {
+      return res.status(400).json({ error: 'Missing required fields' });
+    }
+
+    let table = '';
+    if (role === 'parent') table = 'Student';
+    else if (role === 'teacher') table = 'Teacher';
+    else if (role === 'admin') table = 'Admin';
+    else table = 'users';
+
+    const { error } = await supabase.from(table).update({ push_token: token }).eq('id', id);
+
+    if (error) {
+      // Fallback to lowercase tables if needed
+      if (table === 'Student') await supabase.from('students').update({ push_token: token }).eq('id', id);
+      else if (table === 'Teacher') await supabase.from('teachers').update({ push_token: token }).eq('id', id);
+      else if (table === 'Admin') await supabase.from('admins').update({ push_token: token }).eq('id', id);
+    }
+
+    return res.json({ success: true, message: 'Push token saved successfully' });
+  } catch (error) {
+    next(error);
+  }
+};
+
+module.exports = { login, savePushToken };

@@ -1,4 +1,5 @@
 const { createClient } = require('@supabase/supabase-js');
+const { sendPushNotification } = require('../utils/pushHelper');
 
 const supabase = createClient(
   process.env.SUPABASE_URL,
@@ -62,6 +63,22 @@ const saveMarks = async (req, res, next) => {
         return res.status(500).json({ error: error.message });
       }
     }
+
+    // --- Send Push Notifications ---
+    try {
+      const studentIds = [...new Set(marks.filter(m => m.marks_obtained !== undefined && m.marks_obtained !== null && m.marks_obtained !== '').map(m => m.student_id))];
+      if (studentIds.length > 0) {
+        const { data: students } = await supabase.from('Student').select('push_token').in('id', studentIds).not('push_token', 'is', null);
+        let tokens = students ? students.map(s => s.push_token) : [];
+        tokens = tokens.filter(t => t);
+        if (tokens.length > 0) {
+          await sendPushNotification(tokens, `New Marks Posted: ${exam_name}`, `Marks for ${subject} have been uploaded.`);
+        }
+      }
+    } catch (pushErr) {
+      console.error('Error sending push for marks:', pushErr);
+    }
+    // ---------------------------------
 
     res.status(200).json({ success: true, message: 'Marks saved successfully' });
   } catch (error) {

@@ -20,3 +20,20 @@ export const loginAPI = async (reg_id, password) => {
 export const logout = async () => {
 
 };
+
+export const savePushTokenAPI = async (userId, role, token) => {
+  try {
+    const response = await apiFetch(`${BASE_URL}/api/auth/push-token`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ id: userId, role, token }),
+    });
+
+    const data = await handleApiResponse(response);
+    return data;
+  } catch (error) {
+    return { error: error.message };
+  }
+};
