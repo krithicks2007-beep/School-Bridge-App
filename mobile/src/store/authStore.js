@@ -1,9 +1,15 @@
 import { create } from 'zustand'
+import { persist, createJSONStorage } from 'zustand/middleware'
+import AsyncStorage from '@react-native-async-storage/async-storage'
 import { loginAPI, logout, savePushTokenAPI } from '../services/auth'
 import NotificationService from '../services/NotificationService'
 
-export const useAuthStore = create((set) => ({
-  user: null,
+export const useAuthStore = create(
+  persist(
+    (set, get) => ({
+      _hasHydrated: false,
+      setHasHydrated: (state) => set({ _hasHydrated: state }),
+      user: null,
   role: null,
   student: null,
   profile: null,
@@ -51,8 +57,33 @@ export const useAuthStore = create((set) => ({
     }
   },
   logoutUser: async () => {
-    await logout()
+    const { user, student, profile, role } = get();
+    const userId = student?.id || profile?.id || user?.id;
+    if (userId && role) {
+      try {
+        await savePushTokenAPI(userId, role, null);
+      } catch (err) {
+        console.log('Failed to clear push token', err);
+      }
+    }
+    await logout();
     set({ user: null, role: null, student: null, profile: null, token: null, error: null })
   },
   clearError: () => set({ error: null }),
-}))
+    }),
+    {
+      name: 'auth-storage',
+      storage: createJSONStorage(() => AsyncStorage),
+      onRehydrateStorage: () => (state) => {
+        state?.setHasHydrated(true)
+      },
+      partialize: (state) => ({ 
+        user: state.user, 
+        role: state.role, 
+        student: state.student, 
+        profile: state.profile, 
+        token: state.token 
+      }),
+    }
+  )
+)

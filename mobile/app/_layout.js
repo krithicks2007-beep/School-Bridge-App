@@ -5,7 +5,7 @@ import NotificationService from '../src/services/NotificationService'
 import '../global.css'
 
 export default function RootLayout() {
-  const { role, student, user } = useAuthStore()
+  const { role, student, user, _hasHydrated } = useAuthStore()
   const router = useRouter()
   const segments = useSegments()
   const [isMounted, setIsMounted] = useState(false)
@@ -16,7 +16,7 @@ export default function RootLayout() {
   }, [])
 
   useEffect(() => {
-    if (!isMounted) return;
+    if (!isMounted || !_hasHydrated) return;
 
     const currentGroup = segments[0]
 
@@ -29,7 +29,7 @@ export default function RootLayout() {
     } else if (role === 'admin' && currentGroup !== '(admin)') {
       router.replace('/(admin)')
     }
-  }, [role, student, user, segments, isMounted])
+  }, [role, student, user, segments, isMounted, _hasHydrated])
 
   return <Slot />
 }
