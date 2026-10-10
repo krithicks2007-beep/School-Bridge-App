@@ -1,6 +1,8 @@
 import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
+const RENDER_BACKEND_URL = 'https://school-bridge-app.onrender.com';
+
 const getHostIp = () => {
   try {
     const hostUri = Constants.expoConfig?.hostUri || Constants.manifest2?.extra?.expoGo?.developer?.manifest?.debuggerHost || Constants.manifest?.debuggerHost;
@@ -12,24 +14,33 @@ const getHostIp = () => {
 };
 
 const getBaseUrl = () => {
+  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  // 1. On Web Browser:
   if (Platform.OS === 'web' && typeof window !== 'undefined') {
     const hostname = window.location.hostname;
+    // Local dev server on PC
     if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return 'http://localhost:3000';
+      return (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) ? envUrl : 'http://localhost:3000';
     }
+    // Production web deployment (e.g. Vercel)
+    if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+      return envUrl;
+    }
+    return RENDER_BACKEND_URL;
   }
-  
-  const envUrl = process.env.EXPO_PUBLIC_API_URL;
+
+  // 2. On Mobile Device (Expo Go / APK):
   const hostIp = getHostIp();
-
-  // On physical mobile device, replace localhost/127.0.0.1 with host PC IP address
-  if (Platform.OS !== 'web' && hostIp) {
-    if (!envUrl || envUrl.includes('localhost') || envUrl.includes('127.0.0.1')) {
-      return `http://${hostIp}:3000`;
-    }
+  if (hostIp) {
+    return `http://${hostIp}:3000`;
   }
 
-  return envUrl || 'http://localhost:3000';
+  // Fallback to configured envUrl or production Render URL
+  if (envUrl && !envUrl.includes('localhost') && !envUrl.includes('127.0.0.1')) {
+    return envUrl;
+  }
+  return RENDER_BACKEND_URL;
 };
 
 export const BASE_URL = getBaseUrl();

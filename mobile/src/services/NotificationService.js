@@ -13,7 +13,7 @@ try {
 
 class NotificationService {
   async initializeNotifications() {
-    if (!Notifications) return false;
+    if (Platform.OS === 'web' || !Notifications) return false;
     try {
       // Configure how notifications are handled when the app is in the foreground
       Notifications.setNotificationHandler({
@@ -65,7 +65,7 @@ class NotificationService {
   }
 
   async setBadgeCount(count) {
-    if (!Notifications) return;
+    if (Platform.OS === 'web' || !Notifications) return;
     try {
       await Notifications.setBadgeCountAsync(count);
     } catch (error) {
@@ -74,7 +74,7 @@ class NotificationService {
   }
 
   async registerForPushNotificationsAsync() {
-    if (!Notifications) return null;
+    if (Platform.OS === 'web' || !Notifications) return null;
     let token;
 
     if (Device.isDevice) {
