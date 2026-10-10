@@ -108,155 +108,154 @@ export default function ParentHome() {
   // -------------------------------------------------------------
   if (isLaptop) {
     return (
-      <View className="flex-1 flex-row bg-slate-100">
+      <View style={{ flex: 1, flexDirection: 'row', backgroundColor: '#F1F5F9' }}>
         {/* Left Sidebar Navigation */}
-        <View style={{ width: 250, backgroundColor: '#1E1B4B' }} className="p-5 flex-col justify-between">
+        <View style={{ width: 260, backgroundColor: '#1E1B4B', padding: 20, flexDirection: 'column', justifyContent: 'space-between' }}>
           <View>
             {/* School Header */}
-            <View className="flex-row items-center mb-6 pb-4 border-b border-indigo-900/50">
-              <View className="h-10 w-10 items-center justify-center rounded-full bg-white mr-3 overflow-hidden">
+            <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 24, paddingBottom: 16, borderBottomWidth: 1, borderBottomColor: 'rgba(99, 102, 241, 0.2)' }}>
+              <View style={{ width: 40, height: 40, borderRadius: 20, backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', marginRight: 12, overflow: 'hidden' }}>
                 <Image
                   source={require('../../../assets/pictures/school_logo.png')}
                   style={{ width: 26, height: 26 }}
                   resizeMode="contain"
                 />
               </View>
-              <View className="flex-1">
-                <Text className="text-sm font-black text-white" numberOfLines={1}>Einstein School</Text>
-                <Text className="text-[11px] font-medium text-indigo-300">Parent Portal</Text>
+              <View style={{ flex: 1 }}>
+                <Text style={{ fontSize: 14, fontWeight: '900', color: '#FFFFFF' }} numberOfLines={1}>Einstein School</Text>
+                <Text style={{ fontSize: 11, fontWeight: '600', color: '#A5B4FC' }}>Parent Portal</Text>
               </View>
             </View>
 
             {/* Nav Menu Header */}
-            <Text className="text-[10px] font-extrabold text-indigo-300/80 uppercase tracking-widest mb-3 px-2">Navigation</Text>
+            <Text style={{ fontSize: 10, fontWeight: '800', color: 'rgba(165, 180, 252, 0.7)', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 12, paddingHorizontal: 8 }}>Navigation</Text>
             
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl bg-indigo-600 mb-1.5 shadow-sm" onPress={() => router.push('/(parent)')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, backgroundColor: '#4F46E5', marginBottom: 6 }} onPress={() => router.push('/(parent)')}>
               <Ionicons name="grid" size={18} color="#FFFFFF" />
-              <Text className="text-sm font-bold text-white ml-3">Dashboard</Text>
+              <Text style={{ fontSize: 14, fontWeight: '700', color: '#FFFFFF', marginLeft: 12 }}>Dashboard</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/announcement')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/announcement')}>
               <Ionicons name="megaphone-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Announcements</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Announcements</Text>
               {alertCounts.announcements > 0 && (
-                <View className="ml-auto bg-rose-500 px-2 py-0.5 rounded-full">
-                  <Text className="text-[10px] font-bold text-white">{alertCounts.announcements}</Text>
+                <View style={{ marginLeft: 'auto', backgroundColor: '#F43F5E', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{alertCounts.announcements}</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/homework')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/homework')}>
               <Ionicons name="book-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Homework</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Homework</Text>
               {alertCounts.homework > 0 && (
-                <View className="ml-auto bg-rose-500 px-2 py-0.5 rounded-full">
-                  <Text className="text-[10px] font-bold text-white">{alertCounts.homework}</Text>
+                <View style={{ marginLeft: 'auto', backgroundColor: '#F43F5E', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
+                  <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{alertCounts.homework}</Text>
                 </View>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/timetable')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/timetable')}>
               <Ionicons name="calendar-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Timetable</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Timetable</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/attendance')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/attendance')}>
               <Ionicons name="stats-chart-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Attendance</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Attendance</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/test')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/test')}>
               <Ionicons name="school-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Test Marks</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Test Marks</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/transport')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/transport')}>
               <Ionicons name="bus-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Transport</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Transport</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/(tabs)/chat')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/(tabs)/chat')}>
               <Ionicons name="chatbubbles-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Messages</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Messages</Text>
             </TouchableOpacity>
 
-            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/(tabs)/profile')}>
+            <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', paddingHorizontal: 14, paddingVertical: 12, borderRadius: 12, marginBottom: 6 }} onPress={() => router.push('/(parent)/(tabs)/profile')}>
               <Ionicons name="person-outline" size={18} color="#A5B4FC" />
-              <Text className="text-sm font-medium text-indigo-200 ml-3">Student Profile</Text>
+              <Text style={{ fontSize: 14, fontWeight: '500', color: '#E0E7FF', marginLeft: 12 }}>Student Profile</Text>
             </TouchableOpacity>
           </View>
 
           {/* Student Profile Card at Sidebar Bottom */}
-          <TouchableOpacity className="flex-row items-center p-3 rounded-xl bg-indigo-900/60 border border-indigo-800/50" onPress={() => logoutUser()}>
-            <View className="h-9 w-9 rounded-full bg-indigo-500 items-center justify-center mr-2.5">
-              <Text className="text-sm font-black text-white">{studentName.charAt(0)}</Text>
+          <TouchableOpacity style={{ flexDirection: 'row', alignItems: 'center', padding: 12, borderRadius: 14, backgroundColor: 'rgba(30, 27, 75, 0.8)', borderWidth: 1, borderColor: 'rgba(99, 102, 241, 0.3)' }} onPress={() => logoutUser()}>
+            <View style={{ width: 36, height: 36, borderRadius: 18, backgroundColor: '#6366F1', alignItems: 'center', justifyContent: 'center', marginRight: 10 }}>
+              <Text style={{ fontSize: 14, fontWeight: '900', color: '#FFFFFF' }}>{studentName.charAt(0)}</Text>
             </View>
-            <View className="flex-1">
-              <Text className="text-xs font-bold text-white" numberOfLines={1}>{studentName}</Text>
-              <Text className="text-[10px] font-medium text-indigo-300">Sign Out</Text>
+            <View style={{ flex: 1 }}>
+              <Text style={{ fontSize: 13, fontWeight: '700', color: '#FFFFFF' }} numberOfLines={1}>{studentName}</Text>
+              <Text style={{ fontSize: 11, fontWeight: '500', color: '#A5B4FC' }}>Sign Out</Text>
             </View>
             <Ionicons name="log-out-outline" size={18} color="#A5B4FC" />
           </TouchableOpacity>
         </View>
 
         {/* Laptop Main Workspace */}
-        <ScrollView className="flex-1 bg-slate-50" contentContainerStyle={{ padding: 28 }} showsVerticalScrollIndicator={false}>
+        <ScrollView style={{ flex: 1, backgroundColor: '#F8FAFC' }} contentContainerStyle={{ padding: 28 }} showsVerticalScrollIndicator={false}>
           {/* Top Desktop Bar */}
-          <View className="flex-row items-center justify-between mb-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, backgroundColor: '#FFFFFF', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }}>
             <View>
-              <Text className="text-2xl font-black text-slate-800">{getGreeting()} {studentName} 👋</Text>
-              <Text className="text-xs font-bold text-slate-400 mt-0.5">Einstein Higher Secondary School • School Bridge Portal</Text>
+              <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A' }}>{getGreeting()} {studentName} 👋</Text>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: '#94A3B8', marginTop: 2 }}>Einstein Higher Secondary School • School Bridge Portal</Text>
             </View>
 
-            <View className="flex-row items-center gap-3">
-              <View className="bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full">
-                <Text className="text-xs font-bold text-indigo-700">Class: {studentGrade}</Text>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <View style={{ backgroundColor: '#EEF2FF', borderWidth: 1, borderColor: '#E0E7FF', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 }}>
+                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4338CA' }}>Class: {studentGrade}</Text>
               </View>
-              <TouchableOpacity className="h-10 w-10 bg-slate-100 rounded-full items-center justify-center">
+              <TouchableOpacity style={{ width: 40, height: 40, backgroundColor: '#F1F5F9', borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="notifications-outline" size={20} color="#1E1B4B" />
               </TouchableOpacity>
             </View>
           </View>
 
           {/* 2-Column Laptop Dashboard Layout */}
-          <View className="flex-row gap-6">
+          <View style={{ flexDirection: 'row', gap: 24 }}>
             {/* Main Center Column (68%) */}
             <View style={{ flex: 0.68 }}>
               {/* Hero Banner */}
-              <View className="mb-6 overflow-hidden rounded-2xl shadow-md">
-                <LinearGradient colors={['#3B82F6', '#1D4ED8']} className="p-6 flex-row items-center justify-between">
-                  <View className="flex-1 pr-4">
-                    <Text className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-1">Student Dashboard</Text>
-                    <Text className="text-2xl font-black text-white mb-1">{studentName}</Text>
-                    <Text className="text-sm text-blue-100 font-medium">Class: {studentGrade} • Section A</Text>
+              <View style={{ marginBottom: 24, borderRadius: 16, overflow: 'hidden' }}>
+                <LinearGradient colors={['#3B82F6', '#1D4ED8']} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 24 }}>
+                  <View style={{ flex: 1, paddingRight: 16 }}>
+                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#BFDBFE', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Student Dashboard</Text>
+                    <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4 }}>{studentName}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '500', color: '#DBEAFE' }}>Class: {studentGrade} • Section A</Text>
                   </View>
-                  <View className="h-16 w-16 rounded-full bg-white/20 border-2 border-white items-center justify-center">
-                    <Text className="text-2xl font-black text-white">{studentName.charAt(0)}</Text>
+                  <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255, 255, 255, 0.25)', borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
+                    <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>{studentName.charAt(0)}</Text>
                   </View>
                 </LinearGradient>
               </View>
 
               {/* Quick Actions Grid (3 columns) */}
-              <Text className="text-base font-black text-slate-800 mb-3 ml-1">Quick Access</Text>
-              <View className="flex-row flex-wrap justify-between mb-6">
+              <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A', marginBottom: 12, marginLeft: 4 }}>Quick Access</Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between', marginBottom: 24 }}>
                 
                 {/* Announcement Card */}
                 <TouchableOpacity
-                  style={{ width: '31%', marginBottom: 16 }}
-                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  style={{ width: '31%', height: 120, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', padding: 16, justifyContent: 'space-between' }}
                   onPress={() => router.push('/(parent)/announcement')}
                 >
-                  <View className="flex-row justify-between items-start">
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Ionicons name="megaphone" size={26} color="#2563EB" />
                     {alertCounts.announcements > 0 && (
-                      <View className="bg-rose-500 px-2 py-0.5 rounded-full">
-                        <Text className="text-[10px] font-bold text-white">{alertCounts.announcements}</Text>
+                      <View style={{ backgroundColor: '#F43F5E', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{alertCounts.announcements}</Text>
                       </View>
                     )}
                   </View>
                   <View>
-                    <Text className="text-sm font-bold text-slate-800">Announcement</Text>
-                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Announcement</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#94A3B8' }} numberOfLines={1}>
                       {alertCounts.announcements > 0 ? 'New updates' : 'No new updates'}
                     </Text>
                   </View>
@@ -264,34 +263,32 @@ export default function ParentHome() {
 
                 {/* Timetable Card */}
                 <TouchableOpacity
-                  style={{ width: '31%', marginBottom: 16 }}
-                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  style={{ width: '31%', height: 120, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', padding: 16, justifyContent: 'space-between' }}
                   onPress={() => router.push('/(parent)/timetable')}
                 >
                   <Feather name="clock" size={26} color="#2563EB" />
                   <View>
-                    <Text className="text-sm font-bold text-slate-800">Timetable</Text>
-                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>View daily schedule</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Timetable</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#94A3B8' }} numberOfLines={1}>View daily schedule</Text>
                   </View>
                 </TouchableOpacity>
 
                 {/* Homework Card */}
                 <TouchableOpacity
-                  style={{ width: '31%', marginBottom: 16 }}
-                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  style={{ width: '31%', height: 120, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', padding: 16, justifyContent: 'space-between' }}
                   onPress={() => router.push('/(parent)/homework')}
                 >
-                  <View className="flex-row justify-between items-start">
+                  <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
                     <Ionicons name="book" size={26} color="#2563EB" />
                     {alertCounts.homework > 0 && (
-                      <View className="bg-rose-500 px-2 py-0.5 rounded-full">
-                        <Text className="text-[10px] font-bold text-white">{alertCounts.homework}</Text>
+                      <View style={{ backgroundColor: '#F43F5E', paddingHorizontal: 8, paddingVertical: 2, borderRadius: 10 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '800', color: '#FFFFFF' }}>{alertCounts.homework}</Text>
                       </View>
                     )}
                   </View>
                   <View>
-                    <Text className="text-sm font-bold text-slate-800">Homework</Text>
-                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Homework</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#94A3B8' }} numberOfLines={1}>
                       {alertCounts.homework > 0 ? `${alertCounts.homework} pending` : 'Check pending tasks'}
                     </Text>
                   </View>
@@ -299,73 +296,70 @@ export default function ParentHome() {
 
                 {/* Attendance Card */}
                 <TouchableOpacity
-                  style={{ width: '31%', marginBottom: 16 }}
-                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  style={{ width: '31%', height: 120, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', padding: 16, justifyContent: 'space-between' }}
                   onPress={() => router.push('/(parent)/attendance')}
                 >
                   <MaterialCommunityIcons name="calendar-check" size={26} color="#2563EB" />
                   <View>
-                    <Text className="text-sm font-bold text-slate-800">Attendance</Text>
-                    <Text className="text-xs text-blue-600 font-bold" numberOfLines={1}>87.6% overall</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Attendance</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#2563EB' }} numberOfLines={1}>87.6% overall</Text>
                   </View>
                 </TouchableOpacity>
 
                 {/* Test Marks Card */}
                 <TouchableOpacity
-                  style={{ width: '31%', marginBottom: 16 }}
-                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  style={{ width: '31%', height: 120, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', padding: 16, justifyContent: 'space-between' }}
                   onPress={() => router.push('/(parent)/test')}
                 >
                   <Ionicons name="school" size={26} color="#2563EB" />
                   <View>
-                    <Text className="text-sm font-bold text-slate-800">Test Marks</Text>
-                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>View report card</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Test Marks</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#94A3B8' }} numberOfLines={1}>View report card</Text>
                   </View>
                 </TouchableOpacity>
 
                 {/* Transport Card */}
                 <TouchableOpacity
-                  style={{ width: '31%', marginBottom: 16 }}
-                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  style={{ width: '31%', height: 120, marginBottom: 16, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0', backgroundColor: '#FFFFFF', padding: 16, justifyContent: 'space-between' }}
                   onPress={() => router.push('/(parent)/transport')}
                 >
                   <Ionicons name="bus" size={26} color="#2563EB" />
                   <View>
-                    <Text className="text-sm font-bold text-slate-800">Transport</Text>
-                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>View bus details</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A' }}>Transport</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '500', color: '#94A3B8' }} numberOfLines={1}>View bus details</Text>
                   </View>
                 </TouchableOpacity>
 
               </View>
 
               {/* Feed Card: Announcements & Updates */}
-              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
-                <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
-                  <Text className="text-base font-black text-slate-800">Latest School Announcement</Text>
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, paddingBottom: 12, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+                  <Text style={{ fontSize: 16, fontWeight: '900', color: '#0F172A' }}>Latest School Announcement</Text>
                   <TouchableOpacity onPress={() => router.push('/(parent)/announcement')}>
-                    <Text className="text-xs font-bold text-indigo-600">View All</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '700', color: '#4F46E5' }}>View All</Text>
                   </TouchableOpacity>
                 </View>
 
                 {latestAnnouncement ? (
-                  <View className="p-4 bg-slate-50 rounded-xl border border-slate-100">
-                    <View className="flex-row items-center justify-between mb-2">
-                      <View className="bg-blue-100 px-2.5 py-0.5 rounded-full">
-                        <Text className="text-[10px] font-bold text-blue-700">
+                  <View style={{ padding: 16, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#F1F5F9' }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8 }}>
+                      <View style={{ backgroundColor: '#DBEAFE', paddingHorizontal: 10, paddingVertical: 2, borderRadius: 10 }}>
+                        <Text style={{ fontSize: 10, fontWeight: '700', color: '#1D4ED8' }}>
                           {latestAnnouncement.target_audience?.startsWith('student:') ? 'Direct' : 'School Notice'}
                         </Text>
                       </View>
-                      <Text className="text-xs font-medium text-slate-400">
+                      <Text style={{ fontSize: 12, fontWeight: '500', color: '#94A3B8' }}>
                         {latestAnnouncement.created_at ? new Date(latestAnnouncement.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
                       </Text>
                     </View>
-                    <Text className="text-sm font-bold text-slate-800 mb-1">{latestAnnouncement.title}</Text>
-                    <Text className="text-xs text-slate-500 leading-5" numberOfLines={3}>{latestAnnouncement.content}</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#0F172A', marginBottom: 4 }}>{latestAnnouncement.title}</Text>
+                    <Text style={{ fontSize: 12, color: '#64748B', lineHeight: 20 }} numberOfLines={3}>{latestAnnouncement.content}</Text>
                   </View>
                 ) : (
-                  <View className="p-6 bg-slate-50 rounded-xl border border-slate-100 items-center justify-center">
+                  <View style={{ padding: 24, backgroundColor: '#F8FAFC', borderRadius: 12, borderWidth: 1, borderColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
                     <Ionicons name="notifications-off-outline" size={32} color="#94A3B8" />
-                    <Text className="text-sm font-bold text-slate-500 mt-2">No announcements published yet.</Text>
+                    <Text style={{ fontSize: 14, fontWeight: '700', color: '#64748B', marginTop: 8 }}>No announcements published yet.</Text>
                   </View>
                 )}
               </View>
@@ -375,49 +369,49 @@ export default function ParentHome() {
             <View style={{ flex: 0.32 }}>
               
               {/* Attendance Widget */}
-              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 mb-5">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-sm font-black text-slate-800">Attendance Summary</Text>
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '900', color: '#0F172A' }}>Attendance Summary</Text>
                   <Ionicons name="pie-chart-outline" size={18} color="#4F46E5" />
                 </View>
-                <View className="items-center py-4 bg-indigo-50/50 rounded-xl mb-3 border border-indigo-100/60">
-                  <Text className="text-3xl font-black text-indigo-600">87.6%</Text>
-                  <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Overall Attendance</Text>
+                <View style={{ alignItems: 'center', paddingVertical: 16, backgroundColor: 'rgba(79, 70, 229, 0.05)', borderRadius: 12, marginBottom: 12, borderWidth: 1, borderColor: 'rgba(79, 70, 229, 0.1)' }}>
+                  <Text style={{ fontSize: 30, fontWeight: '900', color: '#4F46E5' }}>87.6%</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#64748B', letterSpacing: 0.5, textTransform: 'uppercase', marginTop: 4 }}>Overall Attendance</Text>
                 </View>
-                <TouchableOpacity className="py-2.5 items-center bg-indigo-600 rounded-xl" onPress={() => router.push('/(parent)/attendance')}>
-                  <Text className="text-xs font-bold text-white">View Full Calendar</Text>
+                <TouchableOpacity style={{ paddingVertical: 10, alignItems: 'center', backgroundColor: '#4F46E5', borderRadius: 12 }} onPress={() => router.push('/(parent)/attendance')}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>View Full Calendar</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Live Bus Tracker Widget */}
-              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 mb-5">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-sm font-black text-slate-800">Live Transport</Text>
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 20 }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '900', color: '#0F172A' }}>Live Transport</Text>
                   <Ionicons name="bus-outline" size={18} color="#2563EB" />
                 </View>
-                <View className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-100 mb-3">
-                  <Text className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-0.5">Bus No. 12</Text>
-                  <Text className="text-sm font-black text-slate-800">Arrives in 10 mins</Text>
-                  <Text className="text-xs text-slate-500 mt-1">Pickup: MG Road Junction</Text>
+                <View style={{ padding: 14, backgroundColor: '#EFF6FF', borderRadius: 12, borderWidth: 1, borderColor: '#DBEAFE', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#2563EB', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 }}>Bus No. 12</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '900', color: '#0F172A' }}>Arrives in 10 mins</Text>
+                  <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>Pickup: MG Road Junction</Text>
                 </View>
-                <TouchableOpacity className="py-2.5 items-center bg-blue-600 rounded-xl" onPress={() => router.push('/(parent)/transport')}>
-                  <Text className="text-xs font-bold text-white">Track Transport</Text>
+                <TouchableOpacity style={{ paddingVertical: 10, alignItems: 'center', backgroundColor: '#2563EB', borderRadius: 12 }} onPress={() => router.push('/(parent)/transport')}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>Track Transport</Text>
                 </TouchableOpacity>
               </View>
 
               {/* Today's Timetable Widget */}
-              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
-                <View className="flex-row items-center justify-between mb-3">
-                  <Text className="text-sm font-black text-slate-800">Today's Schedule</Text>
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 16, padding: 20, borderWidth: 1, borderColor: '#E2E8F0' }}>
+                <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 14, fontWeight: '900', color: '#0F172A' }}>Today's Schedule</Text>
                   <Ionicons name="time-outline" size={18} color="#D97706" />
                 </View>
-                <View className="p-3.5 bg-amber-50/80 rounded-xl border border-amber-100 mb-3">
-                  <Text className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-0.5">Mathematics</Text>
-                  <Text className="text-sm font-black text-slate-800">09:00 AM • Room 101</Text>
-                  <Text className="text-xs text-slate-500 mt-1">Prof. Sharma</Text>
+                <View style={{ padding: 14, backgroundColor: '#FFFBEB', borderRadius: 12, borderWidth: 1, borderColor: '#FEF3C7', marginBottom: 12 }}>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#B45309', letterSpacing: 0.5, textTransform: 'uppercase', marginBottom: 2 }}>Mathematics</Text>
+                  <Text style={{ fontSize: 14, fontWeight: '900', color: '#0F172A' }}>09:00 AM • Room 101</Text>
+                  <Text style={{ fontSize: 12, color: '#64748B', marginTop: 4 }}>Prof. Sharma</Text>
                 </View>
-                <TouchableOpacity className="py-2.5 items-center bg-amber-600 rounded-xl" onPress={() => router.push('/(parent)/timetable')}>
-                  <Text className="text-xs font-bold text-white">View Full Schedule</Text>
+                <TouchableOpacity style={{ paddingVertical: 10, alignItems: 'center', backgroundColor: '#D97706', borderRadius: 12 }} onPress={() => router.push('/(parent)/timetable')}>
+                  <Text style={{ fontSize: 12, fontWeight: '700', color: '#FFFFFF' }}>View Full Schedule</Text>
                 </TouchableOpacity>
               </View>
 
