@@ -204,13 +204,15 @@ export default function ParentHome() {
           {/* Top Desktop Bar */}
           <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24, backgroundColor: '#FFFFFF', padding: 20, borderRadius: 16, borderWidth: 1, borderColor: '#E2E8F0' }}>
             <View>
-              <Text style={{ fontSize: 24, fontWeight: '900', color: '#0F172A' }}>{getGreeting()} {studentName} 👋</Text>
+              <Text style={{ fontSize: 22, fontWeight: '900', color: '#0F172A' }}>Parent Dashboard</Text>
               <Text style={{ fontSize: 12, fontWeight: '600', color: '#94A3B8', marginTop: 2 }}>Einstein Higher Secondary School • School Bridge Portal</Text>
             </View>
 
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <View style={{ backgroundColor: '#EEF2FF', borderWidth: 1, borderColor: '#E0E7FF', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 }}>
-                <Text style={{ fontSize: 12, fontWeight: '700', color: '#4338CA' }}>Class: {studentGrade}</Text>
+              <View style={{ backgroundColor: '#F8FAFC', borderWidth: 1, borderColor: '#E2E8F0', paddingHorizontal: 14, paddingVertical: 6, borderRadius: 20 }}>
+                <Text style={{ fontSize: 12, fontWeight: '600', color: '#64748B' }}>
+                  {new Date().toLocaleDateString('en-US', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })}
+                </Text>
               </View>
               <TouchableOpacity style={{ width: 40, height: 40, backgroundColor: '#F1F5F9', borderRadius: 20, alignItems: 'center', justifyContent: 'center' }}>
                 <Ionicons name="notifications-outline" size={20} color="#1E1B4B" />
@@ -226,9 +228,9 @@ export default function ParentHome() {
               <View style={{ marginBottom: 24, borderRadius: 16, overflow: 'hidden' }}>
                 <LinearGradient colors={['#3B82F6', '#1D4ED8']} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 24 }}>
                   <View style={{ flex: 1, paddingRight: 16 }}>
-                    <Text style={{ fontSize: 11, fontWeight: '700', color: '#BFDBFE', letterSpacing: 1, textTransform: 'uppercase', marginBottom: 4 }}>Student Dashboard</Text>
+                    <Text style={{ fontSize: 12, fontWeight: '600', color: '#BFDBFE', marginBottom: 2 }}>{getGreeting()}</Text>
                     <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF', marginBottom: 4 }}>{studentName}</Text>
-                    <Text style={{ fontSize: 14, fontWeight: '500', color: '#DBEAFE' }}>Class: {studentGrade} • Section A</Text>
+                    <Text style={{ fontSize: 13, fontWeight: '500', color: '#DBEAFE' }}>Class: {studentGrade} • Section A</Text>
                   </View>
                   <View style={{ width: 60, height: 60, borderRadius: 30, backgroundColor: 'rgba(255, 255, 255, 0.25)', borderWidth: 2, borderColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center' }}>
                     <Text style={{ fontSize: 24, fontWeight: '900', color: '#FFFFFF' }}>{studentName.charAt(0)}</Text>
