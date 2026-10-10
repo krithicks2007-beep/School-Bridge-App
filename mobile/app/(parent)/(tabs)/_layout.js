@@ -1,9 +1,13 @@
 import { Tabs } from 'expo-router'
 import { Ionicons } from '@expo/vector-icons'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
+import { useWindowDimensions } from 'react-native'
 
 export default function ParentTabLayout() {
   const insets = useSafeAreaInsets();
+  const { width } = useWindowDimensions();
+  const isLaptop = width >= 768;
+
   return (
     <Tabs
       screenOptions={{
@@ -11,6 +15,7 @@ export default function ParentTabLayout() {
         tabBarActiveTintColor: '#4F46E5',
         tabBarInactiveTintColor: '#9CA3AF',
         tabBarStyle: {
+          display: isLaptop ? 'none' : 'flex',
           backgroundColor: '#ffffff',
           borderTopWidth: 1,
           borderTopColor: '#F1F5F9',

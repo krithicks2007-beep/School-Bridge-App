@@ -116,21 +116,21 @@ export default function TimetableScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       {/* Header */}
-      <View className="flex-row items-center justify-between rounded-b-[30px] px-6 pb-6 pt-12 shadow-lg"
-        style={{ backgroundColor: '#4F46E5' }}
-      >
-        <TouchableOpacity
-          className="h-10 w-10 items-center justify-center bg-white/20 rounded-full"
-          onPress={() => router.back()}
-        >
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text className="text-xl font-black text-white tracking-wide">Timetable</Text>
-        <View className="w-10" />
+      <View className="rounded-b-[30px] shadow-lg" style={{ backgroundColor: '#4F46E5' }}>
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-12 w-full" style={{ maxWidth: 1100, alignSelf: 'center' }}>
+          <TouchableOpacity
+            className="h-10 w-10 items-center justify-center bg-white/20 rounded-full"
+            onPress={() => router.back()}
+          >
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text className="text-xl font-black text-white tracking-wide">Timetable</Text>
+          <View className="w-10" />
+        </View>
       </View>
 
       {/* Day Selector */}
-      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4 }}>
+      <View style={{ paddingHorizontal: 16, paddingTop: 16, paddingBottom: 4, maxWidth: 1100, width: '100%', alignSelf: 'center' }}>
         <ScrollView horizontal showsHorizontalScrollIndicator={false}>
           <View style={{ flexDirection: 'row', gap: 8 }}>
             {weekDays.map(({ index, label }) => {
@@ -163,7 +163,7 @@ export default function TimetableScreen() {
         </ScrollView>
       </View>
 
-      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 48 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ padding: 24, paddingBottom: 48, maxWidth: 1100, width: '100%', alignSelf: 'center' }} showsVerticalScrollIndicator={false}>
 
         {/* Date Title */}
         <View className="flex-row justify-between items-end mb-6">

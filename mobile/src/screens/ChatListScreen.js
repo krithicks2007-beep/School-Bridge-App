@@ -75,7 +75,7 @@ export default function ChatListScreen({ onOpenChat }) {
         end={{ x: 1, y: 1 }}
         style={{ paddingTop: insets.top || StatusBar.currentHeight || 44 }}
       >
-        <View className="flex-row items-center justify-between px-5 pb-4 pt-3">
+        <View className="flex-row items-center justify-between px-5 pb-4 pt-3 max-w-6xl w-full mx-auto">
           <View>
             <Text className="text-xl font-black text-white">Messages</Text>
             {totalUnread > 0 ? (
@@ -101,7 +101,7 @@ export default function ChatListScreen({ onOpenChat }) {
       </LinearGradient>
 
       {/* Conversation Rows */}
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false} contentContainerClassName="max-w-6xl w-full mx-auto">
         <View className="overflow-hidden rounded-b-[0px] bg-white">
           {conversations.map((conv, index) => (
             <TouchableOpacity

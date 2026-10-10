@@ -47,20 +47,20 @@ export default function ProfileScreen() {
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       {/* Header */}
-      <View className="flex-row items-center justify-between rounded-b-[30px] px-6 pb-6 pt-12 shadow-lg shadow-indigo-500/20"
-        style={{ backgroundColor: '#4F46E5' }}
-      >
-        <View className="w-10" />
-        <Text className="text-xl font-black text-white tracking-wide">Student Profile</Text>
-        <TouchableOpacity
-          className="h-10 w-10 items-center justify-center rounded-full bg-white/20"
-          onPress={logoutUser}
-        >
-          <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
-        </TouchableOpacity>
+      <View className="rounded-b-[30px] shadow-lg shadow-indigo-500/20" style={{ backgroundColor: '#4F46E5' }}>
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-12 w-full" style={{ maxWidth: 1100, alignSelf: 'center' }}>
+          <View className="w-10" />
+          <Text className="text-xl font-black text-white tracking-wide">Student Profile</Text>
+          <TouchableOpacity
+            className="h-10 w-10 items-center justify-center rounded-full bg-white/20"
+            onPress={logoutUser}
+          >
+            <Ionicons name="log-out-outline" size={20} color="#FFFFFF" />
+          </TouchableOpacity>
+        </View>
       </View>
 
-      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32 }} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerStyle={{ paddingBottom: 32, maxWidth: 1100, width: '100%', alignSelf: 'center' }} showsVerticalScrollIndicator={false}>
 
         {/* Profile Hero Card */}
         <View className="mx-6 mt-6 overflow-hidden rounded-[28px] shadow-lg shadow-indigo-300/30">

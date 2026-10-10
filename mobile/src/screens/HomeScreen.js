@@ -11,6 +11,8 @@ export default function HomeScreen({ onNavigate }) {
   const [logoError, setLogoError] = useState(false);
   const insets = useSafeAreaInsets();
   const { student } = useAuthStore();
+  const { width } = useWindowDimensions();
+  const isLaptop = width >= 768;
   const [alertCounts, setAlertCounts] = useState({
     announcements: 0,
     homework: 0,
@@ -66,10 +68,13 @@ export default function HomeScreen({ onNavigate }) {
     return 'Good Evening,';
   };
 
+  const cardWidthStyle = isLaptop ? { width: '31%', minWidth: 240 } : { width: '48%' };
+
   const renderCard = ({ id, title, subtitle, boldSubtitle, iconLib: IconLib, icon, iconColor, gradient, badgeCount }) => (
     <TouchableOpacity
       key={id}
-      className="mb-4 h-[128px] w-[48%] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
+      className="mb-4 h-[128px] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
+      style={cardWidthStyle}
       activeOpacity={0.85}
       onPress={() => onNavigate && onNavigate(id)}
     >
@@ -111,14 +116,14 @@ export default function HomeScreen({ onNavigate }) {
       />
 
       <View className="z-[100] bg-white shadow-md shadow-black/5" style={{ paddingTop: insets.top || StatusBar.currentHeight || 40 }}>
-        <View className="flex-row items-center px-5 pb-3.5 pt-2.5">
-          <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-school-gold bg-white shadow-md shadow-school-gold/25">
+        <View className="flex-row items-center px-5 pb-3.5 pt-2.5 w-full" style={{ maxWidth: 1100, alignSelf: 'center' }}>
+          <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-school-gold bg-white shadow-md shadow-school-gold/25 overflow-hidden">
             {logoError ? (
               <Ionicons name="school" size={24} color="#D4AF37" />
             ) : (
               <Image
                 source={require('../../assets/pictures/school_logo.png')}
-                className="h-8 w-8"
+                style={{ width: 32, height: 32 }}
                 resizeMode="contain"
                 onError={() => setLogoError(true)}
               />
@@ -136,8 +141,14 @@ export default function HomeScreen({ onNavigate }) {
 
       <ScrollView
         className="flex-1"
-        contentContainerClassName="items-center px-5 pt-5"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        contentContainerStyle={{
+          paddingBottom: insets.bottom + 20,
+          paddingHorizontal: 20,
+          paddingTop: 20,
+          maxWidth: 1100,
+          width: '100%',
+          alignSelf: 'center',
+        }}
         showsVerticalScrollIndicator={false}
       >
         <View className="mb-6 w-full overflow-hidden rounded-[24px] shadow-xl shadow-blue-600/25">
@@ -154,7 +165,7 @@ export default function HomeScreen({ onNavigate }) {
 
             <Image
               source={require('../../assets/pictures/pic.jpg')}
-              className="h-14 w-14 shrink-0 rounded-full border-2 border-white shadow-md"
+              style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#FFFFFF' }}
               resizeMode="cover"
             />
           </LinearGradient>

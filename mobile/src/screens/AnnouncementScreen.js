@@ -16,15 +16,17 @@ export default function AnnouncementScreen({ onBack }) {
 
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
-      <View className="flex-row items-center justify-between rounded-b-[30px] bg-app-primary px-6 pb-6 pt-12 shadow-lg shadow-indigo-500/20">
-        <TouchableOpacity className="h-10 w-10 items-center justify-center bg-white/20 rounded-full" onPress={onBack}>
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text className="text-xl font-black text-white tracking-wide">Announcements</Text>
-        <View className="w-10" />
+      <View className="rounded-b-[30px] bg-app-primary shadow-lg shadow-indigo-500/20">
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-12 max-w-6xl w-full mx-auto">
+          <TouchableOpacity className="h-10 w-10 items-center justify-center bg-white/20 rounded-full" onPress={onBack}>
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text className="text-xl font-black text-white tracking-wide">Announcements</Text>
+          <View className="w-10" />
+        </View>
       </View>
 
-      <ScrollView contentContainerClassName="p-6 pb-12" showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerClassName="p-6 pb-12 max-w-6xl w-full mx-auto" showsVerticalScrollIndicator={false}>
 
         <TouchableOpacity activeOpacity={0.8} className="mb-5 overflow-hidden rounded-[24px] shadow-sm shadow-blue-200">
           <LinearGradient colors={['#ffffff', '#f8fafc']} className="p-5 border-l-4 border-blue-600">

@@ -1,3 +1,18 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+html, body, #root {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+@media (min-width: 768px) {
+  body {
+    background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311b92 100%);
+    overflow: hidden;
+  }
+}
+

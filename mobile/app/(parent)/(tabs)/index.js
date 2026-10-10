@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { Image, Modal, ScrollView, StatusBar, Text, TouchableOpacity, TouchableWithoutFeedback, View, ActivityIndicator } from 'react-native';
+import { Image, Modal, ScrollView, StatusBar, Text, TouchableOpacity, View, ActivityIndicator, useWindowDimensions } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +14,8 @@ export default function ParentHome() {
   const [profileModalVisible, setProfileModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
   const { student, logoutUser } = useAuthStore();
+  const { width } = useWindowDimensions();
+  const isLaptop = width >= 768;
   const router = useRouter();
   const [alertCounts, setAlertCounts] = useState({
     announcements: 0,
@@ -22,13 +24,17 @@ export default function ParentHome() {
   });
   const [isLoading, setIsLoading] = useState(true);
 
-  const studentName = student?.name || 'Student';
+  const studentName = student?.name || 'Rahul Dominic';
+  const studentGrade = student?.grade || student?.class?.name || '10th Standard';
+
+  const [latestAnnouncement, setLatestAnnouncement] = useState(null);
 
   useFocusEffect(
     useCallback(() => {
       const fetchAlertCounts = async () => {
         if (!student?.id && !student?.class_id) {
           setAlertCounts({ announcements: 0, homework: 0, testMarks: 0 });
+          setLatestAnnouncement(null);
           setIsLoading(false);
           return;
         }
@@ -62,6 +68,12 @@ export default function ParentHome() {
             getLastReadAt('parent-test-marks', student?.id),
           ]);
 
+          if (announcementData.announcements && announcementData.announcements.length > 0) {
+            setLatestAnnouncement(announcementData.announcements[0]);
+          } else {
+            setLatestAnnouncement(null);
+          }
+
           const newAlertCounts = {
             announcements: countUnreadSince(announcementData.announcements, lastReadAnnouncements),
             homework: countUnreadSince(homeworkData.data, lastReadHomework),
@@ -91,144 +103,503 @@ export default function ParentHome() {
     return 'Good Evening,';
   };
 
+  // -------------------------------------------------------------
+  // 1. LAPTOP DESKTOP PORTAL VIEW (For Width >= 768px)
+  // -------------------------------------------------------------
+  if (isLaptop) {
+    return (
+      <View className="flex-1 flex-row bg-slate-100">
+        {/* Left Sidebar Navigation */}
+        <View style={{ width: 250, backgroundColor: '#1E1B4B' }} className="p-5 flex-col justify-between">
+          <View>
+            {/* School Header */}
+            <View className="flex-row items-center mb-6 pb-4 border-b border-indigo-900/50">
+              <View className="h-10 w-10 items-center justify-center rounded-full bg-white mr-3 overflow-hidden">
+                <Image
+                  source={require('../../../assets/pictures/school_logo.png')}
+                  style={{ width: 26, height: 26 }}
+                  resizeMode="contain"
+                />
+              </View>
+              <View className="flex-1">
+                <Text className="text-sm font-black text-white" numberOfLines={1}>Einstein School</Text>
+                <Text className="text-[11px] font-medium text-indigo-300">Parent Portal</Text>
+              </View>
+            </View>
+
+            {/* Nav Menu Header */}
+            <Text className="text-[10px] font-extrabold text-indigo-300/80 uppercase tracking-widest mb-3 px-2">Navigation</Text>
+            
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl bg-indigo-600 mb-1.5 shadow-sm" onPress={() => router.push('/(parent)')}>
+              <Ionicons name="grid" size={18} color="#FFFFFF" />
+              <Text className="text-sm font-bold text-white ml-3">Dashboard</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/announcement')}>
+              <Ionicons name="megaphone-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Announcements</Text>
+              {alertCounts.announcements > 0 && (
+                <View className="ml-auto bg-rose-500 px-2 py-0.5 rounded-full">
+                  <Text className="text-[10px] font-bold text-white">{alertCounts.announcements}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/homework')}>
+              <Ionicons name="book-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Homework</Text>
+              {alertCounts.homework > 0 && (
+                <View className="ml-auto bg-rose-500 px-2 py-0.5 rounded-full">
+                  <Text className="text-[10px] font-bold text-white">{alertCounts.homework}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/timetable')}>
+              <Ionicons name="calendar-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Timetable</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/attendance')}>
+              <Ionicons name="stats-chart-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Attendance</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/test')}>
+              <Ionicons name="school-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Test Marks</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/transport')}>
+              <Ionicons name="bus-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Transport</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/(tabs)/chat')}>
+              <Ionicons name="chatbubbles-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Messages</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity className="flex-row items-center px-3.5 py-3 rounded-xl mb-1.5 hover:bg-indigo-900/40" onPress={() => router.push('/(parent)/(tabs)/profile')}>
+              <Ionicons name="person-outline" size={18} color="#A5B4FC" />
+              <Text className="text-sm font-medium text-indigo-200 ml-3">Student Profile</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Student Profile Card at Sidebar Bottom */}
+          <TouchableOpacity className="flex-row items-center p-3 rounded-xl bg-indigo-900/60 border border-indigo-800/50" onPress={() => logoutUser()}>
+            <View className="h-9 w-9 rounded-full bg-indigo-500 items-center justify-center mr-2.5">
+              <Text className="text-sm font-black text-white">{studentName.charAt(0)}</Text>
+            </View>
+            <View className="flex-1">
+              <Text className="text-xs font-bold text-white" numberOfLines={1}>{studentName}</Text>
+              <Text className="text-[10px] font-medium text-indigo-300">Sign Out</Text>
+            </View>
+            <Ionicons name="log-out-outline" size={18} color="#A5B4FC" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Laptop Main Workspace */}
+        <ScrollView className="flex-1 bg-slate-50" contentContainerStyle={{ padding: 28 }} showsVerticalScrollIndicator={false}>
+          {/* Top Desktop Bar */}
+          <View className="flex-row items-center justify-between mb-6 bg-white p-5 rounded-2xl shadow-sm border border-slate-200/80">
+            <View>
+              <Text className="text-2xl font-black text-slate-800">{getGreeting()} {studentName} 👋</Text>
+              <Text className="text-xs font-bold text-slate-400 mt-0.5">Einstein Higher Secondary School • School Bridge Portal</Text>
+            </View>
+
+            <View className="flex-row items-center gap-3">
+              <View className="bg-indigo-50 border border-indigo-100 px-3.5 py-1.5 rounded-full">
+                <Text className="text-xs font-bold text-indigo-700">Class: {studentGrade}</Text>
+              </View>
+              <TouchableOpacity className="h-10 w-10 bg-slate-100 rounded-full items-center justify-center">
+                <Ionicons name="notifications-outline" size={20} color="#1E1B4B" />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          {/* 2-Column Laptop Dashboard Layout */}
+          <View className="flex-row gap-6">
+            {/* Main Center Column (68%) */}
+            <View style={{ flex: 0.68 }}>
+              {/* Hero Banner */}
+              <View className="mb-6 overflow-hidden rounded-2xl shadow-md">
+                <LinearGradient colors={['#3B82F6', '#1D4ED8']} className="p-6 flex-row items-center justify-between">
+                  <View className="flex-1 pr-4">
+                    <Text className="text-xs font-bold text-blue-200 uppercase tracking-widest mb-1">Student Dashboard</Text>
+                    <Text className="text-2xl font-black text-white mb-1">{studentName}</Text>
+                    <Text className="text-sm text-blue-100 font-medium">Class: {studentGrade} • Section A</Text>
+                  </View>
+                  <View className="h-16 w-16 rounded-full bg-white/20 border-2 border-white items-center justify-center">
+                    <Text className="text-2xl font-black text-white">{studentName.charAt(0)}</Text>
+                  </View>
+                </LinearGradient>
+              </View>
+
+              {/* Quick Actions Grid (3 columns) */}
+              <Text className="text-base font-black text-slate-800 mb-3 ml-1">Quick Access</Text>
+              <View className="flex-row flex-wrap justify-between mb-6">
+                
+                {/* Announcement Card */}
+                <TouchableOpacity
+                  style={{ width: '31%', marginBottom: 16 }}
+                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  onPress={() => router.push('/(parent)/announcement')}
+                >
+                  <View className="flex-row justify-between items-start">
+                    <Ionicons name="megaphone" size={26} color="#2563EB" />
+                    {alertCounts.announcements > 0 && (
+                      <View className="bg-rose-500 px-2 py-0.5 rounded-full">
+                        <Text className="text-[10px] font-bold text-white">{alertCounts.announcements}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View>
+                    <Text className="text-sm font-bold text-slate-800">Announcement</Text>
+                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>
+                      {alertCounts.announcements > 0 ? 'New updates' : 'No new updates'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Timetable Card */}
+                <TouchableOpacity
+                  style={{ width: '31%', marginBottom: 16 }}
+                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  onPress={() => router.push('/(parent)/timetable')}
+                >
+                  <Feather name="clock" size={26} color="#2563EB" />
+                  <View>
+                    <Text className="text-sm font-bold text-slate-800">Timetable</Text>
+                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>View daily schedule</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Homework Card */}
+                <TouchableOpacity
+                  style={{ width: '31%', marginBottom: 16 }}
+                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  onPress={() => router.push('/(parent)/homework')}
+                >
+                  <View className="flex-row justify-between items-start">
+                    <Ionicons name="book" size={26} color="#2563EB" />
+                    {alertCounts.homework > 0 && (
+                      <View className="bg-rose-500 px-2 py-0.5 rounded-full">
+                        <Text className="text-[10px] font-bold text-white">{alertCounts.homework}</Text>
+                      </View>
+                    )}
+                  </View>
+                  <View>
+                    <Text className="text-sm font-bold text-slate-800">Homework</Text>
+                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>
+                      {alertCounts.homework > 0 ? `${alertCounts.homework} pending` : 'Check pending tasks'}
+                    </Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Attendance Card */}
+                <TouchableOpacity
+                  style={{ width: '31%', marginBottom: 16 }}
+                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  onPress={() => router.push('/(parent)/attendance')}
+                >
+                  <MaterialCommunityIcons name="calendar-check" size={26} color="#2563EB" />
+                  <View>
+                    <Text className="text-sm font-bold text-slate-800">Attendance</Text>
+                    <Text className="text-xs text-blue-600 font-bold" numberOfLines={1}>87.6% overall</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Test Marks Card */}
+                <TouchableOpacity
+                  style={{ width: '31%', marginBottom: 16 }}
+                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  onPress={() => router.push('/(parent)/test')}
+                >
+                  <Ionicons name="school" size={26} color="#2563EB" />
+                  <View>
+                    <Text className="text-sm font-bold text-slate-800">Test Marks</Text>
+                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>View report card</Text>
+                  </View>
+                </TouchableOpacity>
+
+                {/* Transport Card */}
+                <TouchableOpacity
+                  style={{ width: '31%', marginBottom: 16 }}
+                  className="h-[120px] rounded-2xl border border-slate-200 bg-white p-4 justify-between shadow-sm"
+                  onPress={() => router.push('/(parent)/transport')}
+                >
+                  <Ionicons name="bus" size={26} color="#2563EB" />
+                  <View>
+                    <Text className="text-sm font-bold text-slate-800">Transport</Text>
+                    <Text className="text-xs text-slate-400 font-medium" numberOfLines={1}>View bus details</Text>
+                  </View>
+                </TouchableOpacity>
+
+              </View>
+
+              {/* Feed Card: Announcements & Updates */}
+              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+                <View className="flex-row items-center justify-between mb-4 pb-3 border-b border-slate-100">
+                  <Text className="text-base font-black text-slate-800">Latest School Announcement</Text>
+                  <TouchableOpacity onPress={() => router.push('/(parent)/announcement')}>
+                    <Text className="text-xs font-bold text-indigo-600">View All</Text>
+                  </TouchableOpacity>
+                </View>
+
+                {latestAnnouncement ? (
+                  <View className="p-4 bg-slate-50 rounded-xl border border-slate-100">
+                    <View className="flex-row items-center justify-between mb-2">
+                      <View className="bg-blue-100 px-2.5 py-0.5 rounded-full">
+                        <Text className="text-[10px] font-bold text-blue-700">
+                          {latestAnnouncement.target_audience?.startsWith('student:') ? 'Direct' : 'School Notice'}
+                        </Text>
+                      </View>
+                      <Text className="text-xs font-medium text-slate-400">
+                        {latestAnnouncement.created_at ? new Date(latestAnnouncement.created_at).toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : ''}
+                      </Text>
+                    </View>
+                    <Text className="text-sm font-bold text-slate-800 mb-1">{latestAnnouncement.title}</Text>
+                    <Text className="text-xs text-slate-500 leading-5" numberOfLines={3}>{latestAnnouncement.content}</Text>
+                  </View>
+                ) : (
+                  <View className="p-6 bg-slate-50 rounded-xl border border-slate-100 items-center justify-center">
+                    <Ionicons name="notifications-off-outline" size={32} color="#94A3B8" />
+                    <Text className="text-sm font-bold text-slate-500 mt-2">No announcements published yet.</Text>
+                  </View>
+                )}
+              </View>
+            </View>
+
+            {/* Right Sidebar Widgets (32%) */}
+            <View style={{ flex: 0.32 }}>
+              
+              {/* Attendance Widget */}
+              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 mb-5">
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className="text-sm font-black text-slate-800">Attendance Summary</Text>
+                  <Ionicons name="pie-chart-outline" size={18} color="#4F46E5" />
+                </View>
+                <View className="items-center py-4 bg-indigo-50/50 rounded-xl mb-3 border border-indigo-100/60">
+                  <Text className="text-3xl font-black text-indigo-600">87.6%</Text>
+                  <Text className="text-xs font-bold text-slate-500 uppercase tracking-wider mt-1">Overall Attendance</Text>
+                </View>
+                <TouchableOpacity className="py-2.5 items-center bg-indigo-600 rounded-xl" onPress={() => router.push('/(parent)/attendance')}>
+                  <Text className="text-xs font-bold text-white">View Full Calendar</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Live Bus Tracker Widget */}
+              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80 mb-5">
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className="text-sm font-black text-slate-800">Live Transport</Text>
+                  <Ionicons name="bus-outline" size={18} color="#2563EB" />
+                </View>
+                <View className="p-3.5 bg-blue-50/80 rounded-xl border border-blue-100 mb-3">
+                  <Text className="text-xs font-bold text-blue-600 uppercase tracking-wider mb-0.5">Bus No. 12</Text>
+                  <Text className="text-sm font-black text-slate-800">Arrives in 10 mins</Text>
+                  <Text className="text-xs text-slate-500 mt-1">Pickup: MG Road Junction</Text>
+                </View>
+                <TouchableOpacity className="py-2.5 items-center bg-blue-600 rounded-xl" onPress={() => router.push('/(parent)/transport')}>
+                  <Text className="text-xs font-bold text-white">Track Transport</Text>
+                </TouchableOpacity>
+              </View>
+
+              {/* Today's Timetable Widget */}
+              <View className="bg-white rounded-2xl p-5 shadow-sm border border-slate-200/80">
+                <View className="flex-row items-center justify-between mb-3">
+                  <Text className="text-sm font-black text-slate-800">Today's Schedule</Text>
+                  <Ionicons name="time-outline" size={18} color="#D97706" />
+                </View>
+                <View className="p-3.5 bg-amber-50/80 rounded-xl border border-amber-100 mb-3">
+                  <Text className="text-xs font-bold text-amber-700 uppercase tracking-wider mb-0.5">Mathematics</Text>
+                  <Text className="text-sm font-black text-slate-800">09:00 AM • Room 101</Text>
+                  <Text className="text-xs text-slate-500 mt-1">Prof. Sharma</Text>
+                </View>
+                <TouchableOpacity className="py-2.5 items-center bg-amber-600 rounded-xl" onPress={() => router.push('/(parent)/timetable')}>
+                  <Text className="text-xs font-bold text-white">View Full Schedule</Text>
+                </TouchableOpacity>
+              </View>
+
+            </View>
+          </View>
+        </ScrollView>
+      </View>
+    );
+  }
+
+  // -------------------------------------------------------------
+  // 2. MOBILE PHONE VIEW (For Width < 768px - Native Mobile View)
+  // -------------------------------------------------------------
   const renderCard = ({ id, title, subtitle, boldSubtitle, iconLib: IconLib, icon, iconColor, gradient, badgeCount }) => (
     <TouchableOpacity
       key={id}
-      className="mb-4 h-[128px] w-[48%] overflow-hidden rounded-[20px] border border-[#E8EDF5] bg-white shadow-md shadow-blue-900/10"
+      style={{
+        width: '48%',
+        height: 124,
+        marginBottom: 16,
+        borderRadius: 20,
+        backgroundColor: '#FFFFFF',
+        borderWidth: 1,
+        borderColor: '#E8EDF5',
+        shadowColor: '#1E40AF',
+        shadowOffset: { width: 0, height: 4 },
+        shadowOpacity: 0.06,
+        shadowRadius: 10,
+        elevation: 3,
+        overflow: 'hidden',
+      }}
       activeOpacity={0.85}
       onPress={() => router.push(`/(parent)/${id}`)}
     >
-      <LinearGradient colors={gradient} className="flex-1 p-3" start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }}>
-        {badgeCount && (
-          <View className="absolute right-2.5 top-2.5 z-10 h-[22px] w-[22px] items-center justify-center rounded-full bg-rose-600 shadow-md shadow-rose-600/40">
-            <Text className="text-[11px] font-extrabold text-white">{badgeCount}</Text>
+      <LinearGradient
+        colors={gradient}
+        style={{ flex: 1, padding: 14, justifyContent: 'space-between' }}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 1, y: 1 }}
+      >
+        {/* Top Card Row: Icon & Badge */}
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ width: 36, height: 36, borderRadius: 10, backgroundColor: 'rgba(37, 99, 235, 0.08)', alignItems: 'center', justifyContent: 'center' }}>
+            <IconLib name={icon} size={22} color={iconColor} />
           </View>
-        )}
 
-        <View className="mb-1.5 h-[30px] items-start justify-start">
-          <IconLib name={icon} size={28} color={iconColor} />
+          {badgeCount ? (
+            <View style={{ height: 22, minWidth: 22, paddingHorizontal: 6, borderRadius: 11, backgroundColor: '#DC2626', alignItems: 'center', justifyContent: 'center' }}>
+              <Text style={{ fontSize: 11, fontWeight: '800', color: '#FFFFFF' }}>{badgeCount}</Text>
+            </View>
+          ) : null}
         </View>
 
-        <Text className="mb-1 text-[15px] font-bold text-gray-900">{title}</Text>
-
-        <View className="flex-row items-center justify-between">
-          {boldSubtitle ? (
-            <Text className="flex-1 text-xs text-[#595959]" numberOfLines={1}>
-              <Text className="font-bold text-blue-700">{boldSubtitle}</Text>
-              {' '}{subtitle}
-            </Text>
-          ) : (
-            <Text className="flex-1 text-xs text-[#595959]" numberOfLines={1}>{subtitle}</Text>
-          )}
-          <Ionicons name="chevron-forward" size={14} color="#9CA3AF" />
+        {/* Bottom Card Content: Title & Subtitle with Chevron */}
+        <View style={{ marginTop: 8 }}>
+          <Text style={{ fontSize: 15, fontWeight: '700', color: '#0F172A', marginBottom: 2 }} numberOfLines={1}>{title}</Text>
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            {boldSubtitle ? (
+              <Text style={{ flex: 1, fontSize: 12, color: '#64748B' }} numberOfLines={1}>
+                <Text style={{ fontWeight: '700', color: '#2563EB' }}>{boldSubtitle}</Text>
+                {' '}{subtitle}
+              </Text>
+            ) : (
+              <Text style={{ flex: 1, fontSize: 12, color: '#64748B' }} numberOfLines={1}>{subtitle}</Text>
+            )}
+            <Ionicons name="chevron-forward" size={14} color="#94A3B8" />
+          </View>
         </View>
       </LinearGradient>
     </TouchableOpacity>
   );
 
   return (
-    <View className="flex-1">
+    <View style={{ flex: 1, backgroundColor: '#F8FAFC' }}>
       <LinearGradient
         colors={['#E8F0FE', '#FDF2F8', '#FFF8EC']}
-        className="absolute inset-0"
+        style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
       />
 
-      <View className="z-[100] bg-white shadow-md shadow-black/5" style={{ paddingTop: insets.top || StatusBar.currentHeight || 40 }}>
-        <View className="flex-row items-center px-5 pb-3.5 pt-2.5">
-          <View className="h-12 w-12 items-center justify-center rounded-full border-2 border-school-gold bg-white shadow-md shadow-school-gold/25">
+      {/* Top Navigation Bar */}
+      <View style={{ backgroundColor: '#FFFFFF', paddingTop: insets.top || StatusBar.currentHeight || 40, borderBottomWidth: 1, borderBottomColor: '#F1F5F9' }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 12 }}>
+          <View style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1.5, borderColor: '#D4AF37', backgroundColor: '#FFFFFF', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
             {logoError ? (
-              <Ionicons name="school" size={24} color="#D4AF37" />
+              <Ionicons name="school" size={22} color="#D4AF37" />
             ) : (
               <Image
                 source={require('../../../assets/pictures/school_logo.png')}
-                className="h-8 w-8"
+                style={{ width: 28, height: 28 }}
                 resizeMode="contain"
                 onError={() => setLogoError(true)}
               />
             )}
           </View>
-          <View className="flex-1 px-3">
-            <Text className="text-[15px] font-extrabold leading-[19px] text-brand-950" numberOfLines={1}>Einstein Higher Secondary School</Text>
-            <Text className="mt-0.5 text-[11px] font-medium text-gray-500">School Bridge App</Text>
+          <View style={{ flex: 1, paddingHorizontal: 12 }}>
+            <Text style={{ fontSize: 14, fontWeight: '800', color: '#0F172A' }} numberOfLines={1}>Einstein Higher Secondary School</Text>
+            <Text style={{ fontSize: 11, fontWeight: '500', color: '#64748B', marginTop: 1 }}>School Bridge App</Text>
           </View>
-          <TouchableOpacity className="h-10 w-10 items-center justify-center rounded-full bg-gray-100">
-            <Ionicons name="notifications-outline" size={22} color="#1E1B4B" />
+          <TouchableOpacity style={{ width: 38, height: 38, borderRadius: 19, backgroundColor: '#F1F5F9', alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="notifications-outline" size={20} color="#1E1B4B" />
           </TouchableOpacity>
         </View>
       </View>
 
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="items-center px-5 pt-5"
-        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: 16,
+          paddingTop: 16,
+          paddingBottom: (insets.bottom || 20) + 20,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        <View className="mb-6 w-full overflow-hidden rounded-[24px] shadow-xl shadow-blue-600/25">
+        {/* Banner Card */}
+        <View style={{ marginBottom: 20, borderRadius: 20, overflow: 'hidden', elevation: 4, shadowColor: '#1D4ED8', shadowOffset: { width: 0, height: 6 }, shadowOpacity: 0.25, shadowRadius: 12 }}>
           <LinearGradient
             colors={['#3B82F6', '#1D4ED8']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            className="flex-row items-center justify-between p-6"
+            style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 20 }}
           >
-            <View className="flex-1 pr-3">
-              <Text className="mb-0.5 text-sm font-medium text-white/85">{getGreeting()}</Text>
-              <View className="flex-row items-center">
-                <Text className="mb-2.5 text-[26px] font-black leading-8 text-white mr-2" numberOfLines={2}>{studentName}</Text>
-                {isLoading && <ActivityIndicator size="small" color="#ffffff" />}
+            <View style={{ flex: 1, paddingRight: 12 }}>
+              <Text style={{ fontSize: 13, fontWeight: '500', color: 'rgba(255, 255, 255, 0.85)', marginBottom: 2 }}>{getGreeting()}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 4 }}>
+                <Text style={{ fontSize: 22, fontWeight: '900', color: '#FFFFFF', marginRight: 8 }} numberOfLines={1}>{studentName}</Text>
+                {isLoading && <ActivityIndicator size="small" color="#FFFFFF" />}
               </View>
-              <Text className="text-xs font-medium text-white/70">{student?.grade || ''}</Text>
+              <Text style={{ fontSize: 12, fontWeight: '600', color: 'rgba(255, 255, 255, 0.75)' }}>{studentGrade}</Text>
             </View>
 
             <TouchableOpacity activeOpacity={0.8} onPress={() => setProfileModalVisible(true)}>
               {student?.photo_url ? (
                 <Image
                   source={{ uri: student.photo_url }}
-                  style={{ width: 56, height: 56, borderRadius: 28, borderWidth: 2, borderColor: '#fff' }}
+                  style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#FFFFFF' }}
                   resizeMode="cover"
                 />
               ) : (
-                <View className="h-14 w-14 shrink-0 items-center justify-center rounded-full border-2 border-white bg-blue-400 shadow-md">
-                  <Text className="text-[22px] font-black text-white">{studentName.charAt(0)}</Text>
+                <View style={{ width: 52, height: 52, borderRadius: 26, borderWidth: 2, borderColor: '#FFFFFF', backgroundColor: 'rgba(255, 255, 255, 0.25)', alignItems: 'center', justifyContent: 'center' }}>
+                  <Text style={{ fontSize: 22, fontWeight: '900', color: '#FFFFFF' }}>{studentName.charAt(0)}</Text>
                 </View>
               )}
             </TouchableOpacity>
           </LinearGradient>
         </View>
 
+        {/* Profile Modal */}
         <Modal visible={profileModalVisible} transparent animationType="fade" onRequestClose={() => setProfileModalVisible(false)}>
           <TouchableOpacity 
             activeOpacity={1} 
-            className="flex-1 bg-black/60 items-center justify-center px-6" 
+            style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.6)', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 24 }} 
             onPress={() => setProfileModalVisible(false)}
           >
-            <TouchableOpacity activeOpacity={1}>
-              <View className="bg-white w-full rounded-[24px] overflow-hidden items-center p-6 shadow-2xl">
+            <TouchableOpacity activeOpacity={1} style={{ width: '100%' }}>
+              <View style={{ backgroundColor: '#FFFFFF', borderRadius: 24, padding: 24, alignItems: 'center' }}>
                 {student?.photo_url ? (
                   <Image 
                     source={{ uri: student.photo_url }} 
-                    className="h-32 w-32 rounded-full border-4 border-blue-100 mb-4"
+                    style={{ width: 110, height: 110, borderRadius: 55, borderWidth: 4, borderColor: '#DBEAFE', marginBottom: 16 }}
                   />
                 ) : (
-                  <View className="h-32 w-32 rounded-full bg-blue-400 items-center justify-center border-4 border-blue-100 mb-4">
-                    <Text className="text-5xl font-black text-white">{studentName.charAt(0)}</Text>
+                  <View style={{ width: 110, height: 110, borderRadius: 55, backgroundColor: '#3B82F6', alignItems: 'center', justifyContent: 'center', borderWidth: 4, borderColor: '#DBEAFE', marginBottom: 16 }}>
+                    <Text style={{ fontSize: 44, fontWeight: '900', color: '#FFFFFF' }}>{studentName.charAt(0)}</Text>
                   </View>
                 )}
-                <Text className="text-2xl font-black text-gray-900 mb-1 text-center">{studentName}</Text>
-                <Text className="text-sm font-medium text-blue-600 mb-4">Grade {student?.grade || ''}</Text>
+                <Text style={{ fontSize: 20, fontWeight: '900', color: '#0F172A', marginBottom: 4, textAlign: 'center' }}>{studentName}</Text>
+                <Text style={{ fontSize: 13, fontWeight: '600', color: '#2563EB', marginBottom: 20 }}>Grade {studentGrade}</Text>
                 <TouchableOpacity 
-                  className="bg-gray-100 w-full py-3 rounded-xl items-center" 
+                  style={{ backgroundColor: '#F1F5F9', width: '100%', paddingVertical: 12, borderRadius: 12, alignItems: 'center' }} 
                   onPress={() => setProfileModalVisible(false)}
                 >
-                  <Text className="font-bold text-gray-700">Close</Text>
+                  <Text style={{ fontWeight: '700', color: '#334155' }}>Close</Text>
                 </TouchableOpacity>
               </View>
             </TouchableOpacity>
           </TouchableOpacity>
         </Modal>
 
-        <View className="w-full flex-row flex-wrap justify-between">
+        {/* Grid Cards Container */}
+        <View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'space-between' }}>
           {renderCard({
             id: 'announcement',
             title: 'Announcement',
@@ -236,7 +607,7 @@ export default function ParentHome() {
             iconLib: Ionicons,
             icon: 'megaphone',
             iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            gradient: ['#FFFFFF', '#F8FAFC'],
             badgeCount: alertCounts.announcements || undefined,
           })}
           {renderCard({
@@ -246,7 +617,7 @@ export default function ParentHome() {
             iconLib: Feather,
             icon: 'clock',
             iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            gradient: ['#FFFFFF', '#F8FAFC'],
           })}
           {renderCard({
             id: 'homework',
@@ -256,7 +627,7 @@ export default function ParentHome() {
             iconLib: Ionicons,
             icon: 'book',
             iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            gradient: ['#FFFFFF', '#F8FAFC'],
             badgeCount: alertCounts.homework || undefined,
           })}
           {renderCard({
@@ -267,7 +638,7 @@ export default function ParentHome() {
             iconLib: MaterialCommunityIcons,
             icon: 'calendar-check',
             iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            gradient: ['#FFFFFF', '#F8FAFC'],
           })}
           {renderCard({
             id: 'test',
@@ -276,7 +647,7 @@ export default function ParentHome() {
             iconLib: Ionicons,
             icon: 'school',
             iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            gradient: ['#FFFFFF', '#F8FAFC'],
             badgeCount: alertCounts.testMarks || undefined,
           })}
           {renderCard({
@@ -286,7 +657,7 @@ export default function ParentHome() {
             iconLib: Ionicons,
             icon: 'bus',
             iconColor: '#2563EB',
-            gradient: ['#FFFFFF', '#F0F6FF'],
+            gradient: ['#FFFFFF', '#F8FAFC'],
           })}
         </View>
       </ScrollView>

@@ -41,15 +41,17 @@ export default function StudentDetailScreen({ onBack }) {
   return (
     <SafeAreaView className="flex-1 bg-slate-50">
       {/* Header */}
-      <View className="flex-row items-center justify-between rounded-b-[30px] bg-app-primary px-6 pb-6 pt-12 shadow-lg shadow-indigo-500/20">
-        <TouchableOpacity className="h-10 w-10 items-center justify-center bg-white/20 rounded-full" onPress={onBack}>
-          <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
-        </TouchableOpacity>
-        <Text className="text-xl font-black text-white tracking-wide">Student Profile</Text>
-        <View className="w-10" />
+      <View className="rounded-b-[30px] bg-app-primary shadow-lg shadow-indigo-500/20">
+        <View className="flex-row items-center justify-between px-6 pb-6 pt-12 max-w-6xl w-full mx-auto">
+          <TouchableOpacity className="h-10 w-10 items-center justify-center bg-white/20 rounded-full" onPress={onBack}>
+            <Ionicons name="arrow-back" size={22} color="#FFFFFF" />
+          </TouchableOpacity>
+          <Text className="text-xl font-black text-white tracking-wide">Student Profile</Text>
+          <View className="w-10" />
+        </View>
       </View>
 
-      <ScrollView className="flex-1" contentContainerClassName="pb-12" showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" contentContainerClassName="pb-12 max-w-6xl w-full mx-auto" showsVerticalScrollIndicator={false}>
 
         {/* Profile Hero Card */}
         <View className="mx-6 -mt-1">

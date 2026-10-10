@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Slot, useRouter, useSegments } from 'expo-router'
 import { useAuthStore } from '../src/store/authStore'
 import NotificationService from '../src/services/NotificationService'
+import ResponsiveContainer from '../src/components/ResponsiveContainer'
 import '../global.css'
 
 export default function RootLayout() {
@@ -31,5 +32,9 @@ export default function RootLayout() {
     }
   }, [role, student, user, segments, isMounted, _hasHydrated])
 
-  return <Slot />
-}
+  return (
+    <ResponsiveContainer>
+      <Slot />
+    </ResponsiveContainer>
+  )
+}

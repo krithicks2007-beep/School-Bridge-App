@@ -6,7 +6,9 @@
     "scheme": "school-bridge",
     "orientation": "portrait",
     "icon": "./assets/custom-icon.png",
-    "userInterfaceStyle": "light",
+    "web": {
+      "bundler": "metro"
+    },
     "plugins": [
       "expo-router",
       [
